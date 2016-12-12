@@ -1,0 +1,5 @@
+MellonRegexSniffer:
+ pattern_files:
+  all: rel/or/abs/file/path #file contains patterns applied to all file types
+  byte: rel/or/abs/file/path #file contains patterns applied to byte data (binary files)
+  unicode: rel/or/abs/file/path #file contains patterns applied to unicode data (text files)

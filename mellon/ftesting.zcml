@@ -1,0 +1,13 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon">
+    
+    <!-- Required ZCA Components -->
+    <include package="zope.component" />
+    <include package="zope.security" />
+
+    <!-- mellon Components -->
+    <include package="mellon" />
+
+</configure>

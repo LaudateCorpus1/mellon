@@ -1,0 +1,29 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon">
+
+    <adapter
+        provides="mellon.IBinaryChecker"
+        for="mellon.IPath"
+        factory=".binary.BinaryCheckerForPath"
+        />
+
+    <utility
+        provides="zope.component.IFactory"
+    	component=".file.mellonFileProviderForRecursiveDirectoryConfigFactory"
+    	name="mellon.factories.filesystem.file_provider_for_recursive_directory_config"
+    	/>
+
+    <utility
+    	component=".file.mellonByteFileFromFilePathAndConfigFactory"
+    	name="mellon.factories.filesystem.byte_file"
+    	/>
+
+    <utility
+    	component=".file.mellonUnicodeFileFromFilePathAndConfigFactory"
+    	name="mellon.factories.filesystem.unicode_file"
+    	/>
+
+
+</configure>

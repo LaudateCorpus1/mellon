@@ -1,0 +1,39 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon.factories.web_crawler">
+    
+    <include package="mellon" />
+    <include package=".subscribers" />
+
+    <class class='scrapy.spiders.Spider'>
+        <implements interface='.IScrapySpider' />
+    </class>
+
+    <class class='scrapy.http.response.Response'>
+        <implements interface='.IScrapyHttpResponse' />
+    </class>
+
+    <adapter
+        provides="mellon.IBinaryChecker"
+        for="mellon.factories.web_crawler.IScrapyHttpResponse"
+        factory=".binary.BinaryCheckerForScrapyHttpResponse"
+        />
+
+    <utility
+        component=".file.mellonByteFileFromItemAndConfigFactory"
+        name="mellon.factories.web_crawler.byte_file"
+        />
+    
+    <utility
+        component=".file.mellonUnicodeFileFromItemAndConfigFactory"
+        name="mellon.factories.web_crawler.unicode_file"
+        />
+        
+    <utility
+        provides="zope.component.IFactory"
+    	component=".file.MellonFileProviderForAllRegisteredScrapySpiders"
+    	name="mellon.factories.web_crawler.file_provider_for_all_registered_scrapy_spiders"
+    	/>
+
+</configure>

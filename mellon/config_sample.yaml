@@ -1,0 +1,111 @@
+#BASE CONFIGURATIONS
+# The following configuration directives are defined here, then referenced
+# in the APPLICATION CONFIGURATIONS sections below.
+
+#Git repo clone base directory
+# Defines a persisted location where Git repos are cloned into.  This location
+# will be reference via the 'clone_repos_base_dir' identifier within later
+# config entries
+#
+# Defined: sparc.git.repos
+- GitReposBaseDir: &clone_repos_base_dir_1
+   directory: /your/relative/or/absolute/directory/name
+
+#Stash repo server connection information
+# Information required to establish network connections into a Stash server
+#
+# Defined: sparc.git.repos.stash
+- StashConnection: &stash_connection_1
+   url: http://your_server:7990
+   username: your_username
+   password: your_password
+   requests:
+    verify: True # [True|False|cert_path] SSL cert verification directive
+
+#Stash project repos 
+# Describes parameters that can be used to generate a list of Stash projects
+# and repos for a given StashConnection.
+#
+# GitReposBaseDir is defined in sparc.git.configure.yaml, and will indicate
+# a local directory that will be used to reference the remote origins located
+# on the Stash server.
+#
+# include/exclude parameters are optional, by default all available projects 
+# and repos are listed.  If include is given, then only these projects and 
+# repos are listed.  If exclude is given, then these project/repos will be 
+# removed from the list.
+#
+# Defined: sparc.git.repos.stash
+- StashProjectRepos: &stash_prj_repos_1
+   StashConnection: *stash_connection_1
+   GitReposBaseDir: *clone_repos_base_dir_1
+   include: # optional, default is include all projects
+     project key: # actual project key reference
+       - first repo name to include # optional, default is all repos
+       - second repo name to include # optional, default is all repos
+   exclude: # optional, default is no project exclusion
+     project key: # actual project name reference
+       - first repo name to exclude # optional, default is all repos
+       - second repo name to exclude # optional, default is all repos
+
+#APPLICATION CONFIGURATIONS
+# The application operates in the following manor:
+#  - Configure the Zope component registry via ZCML
+#  - iterate over each MellonFileProviderFactory defined in this file
+#    - call the factory (which produces a mellon.IMellonFileProvider object)
+#    - iterate over the mellon.IMellonFileProvider object (producing mellon.IMellonFile objects)
+#      - iterate over each file via mellon.ISnippetIterator (producing mellon.ISnippet objects)
+#        - issue mellon.ISnippetAvailableForSecretsSniffEvent zope event for each mellon.ISnippet object
+#
+# By default, 
+
+#Mellon snippet parameters
+# The app will examine each file in snippet streams (to make sure memory 
+# consumption does not grow too large).  Text data will be examined in groups
+# of lines.  Binary (bytes) data will be examined in groups of blocks.
+# Sequential snippets can/should be configured to overlap by a small amount 
+# to make sure we can catch secrets that land in the middle of an ending
+# snippet.
+- MellonSnippet: &defaul_mellon_snippet
+   lines_coverage: 5 #text data - number of lines to examine at once from text data.
+   lines_increment: 1 #text data - how many lines to jump each snippet iteration (must be lte to lines_coverage)
+   bytes_read_size: 512000 #binary data - how many bytes to read from file at once
+   bytes_coverage: 8 #binary data - how many bytes_read_size packets to examine at once for secrets
+   bytes_increment: 7 #binary data - how many bytes_read_size packets to jump each iteration (must be lte to bytes_coverage) 
+
+#File provider factory for Mellon application
+# This contains the name of a ZCML configured named factory that produces
+# objects providing mellon.IMellonFileProvider
+- MellonFileProviderFactory:
+   name: mellon.stash.file_provider_from_config
+   StashProjectRepos: *stash_prj_repos_1
+   MellonSnippet: *defaul_mellon_snippet
+
+#Reporter
+# You can create your own custom reporters for when secrets are found.  This
+# basic reporter simply leverages a Python logger warning.  Reporters are 
+# Zope event handlers and are registered via ZCML
+#
+# Defined: sparc.configuration.container.zcml
+- ZCMLConfiguration:
+   - package: mellon.reporters.logger
+     file: configure.zcml
+
+#Secrets Sniffer(s)
+# You can create and/or register your own secrets sniffers.  This are small
+# adapters that examine a snippet for a secret.
+#
+# Defined: sparc.configuration.yaml
+- ZCMLConfiguration:
+   - package: mellon.sniffers.test
+     file: configure.zcml
+   
+#Custom implementations
+# You can create your own components to be leveraged by the application at
+# runtime.  These components can be registered with the application via a 
+# ZCML file.
+#
+# Defined: sparc.configuration.yaml
+- ZCMLConfiguration:
+   - package: your.python.package.name
+     file: your_file.zcml # optional, defaults to configure.zcml

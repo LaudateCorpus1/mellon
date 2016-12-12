@@ -1,0 +1,4 @@
+#FileSystemDir
+# Identifies a local file system directory
+FileSystemDir:
+  directory: your/relative/or/absolute/directory/name

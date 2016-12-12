@@ -1,0 +1,5 @@
+MellonRegexWhitelist:
+ pattern_files:
+  all: rel/or/abs/file/path #file contains patterns applied to all types
+  file: rel/or/abs/file/path #file contains patterns applied to files
+  secret: rel/or/abs/file/path #file contains patterns applied to secrets

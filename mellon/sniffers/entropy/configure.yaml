@@ -1,0 +1,5 @@
+MellonEntropySniffer:
+ word_length_min: 12 #Low Water mark for word length, only words gte to this match
+ word_length_max: 32 #High Water mark for word length, only words lte to this match
+ entropy_min: .3 #Water mark for entropy (0.0-1.0), matches for words gte to this calculated shannon entroy score
+ 

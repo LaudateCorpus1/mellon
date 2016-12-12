@@ -1,0 +1,46 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon">
+
+    <include package="sparc.configuration" />
+    <include package="sparc.git" />
+    
+    <include package=".factories" />
+    
+    <utility
+        component=".path.filesystemPathFactory"
+        name="mellon.filesystem_path"
+        />
+    
+    <utility
+        component=".file.mellonByteFileFromFileStreamAndConfigFactory"
+        name="mellon.byte_file_from_stream"
+        />
+    
+    <utility
+        component=".file.mellonUnicodeFileFromFileStreamAndConfigFactory"
+        name="mellon.unicode_file_from_stream"
+        />
+    
+    <utility
+        component=".snippet.bytesSnippetFactory"
+        name="mellon.bytes_snippet"
+        />
+    
+    <utility
+        component=".snippet.unicodeSnippetFactory"
+        name="mellon.unicode_snippet"
+        />
+    
+    <utility
+        component=".secret.secretFactory"
+        name="mellon.secret"
+        />
+    
+    <utility
+        component=".whitelist.whitelistInfoFactory"
+        name="mellon.whitelist_info"
+        />
+
+</configure>
