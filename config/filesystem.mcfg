@@ -1,0 +1,59 @@
+# FILESYSTEM SCANNING SAMPLE
+
+# -----------------------------------------------
+# UPDATE THESE ENTRIES TO MATCH YOUR ENVIRONMENT
+# -----------------------------------------------
+
+# Define a directory to scan.  This can be a absolute or path relative to
+# Mellon invocation directory.
+FileSystemDir: &filesystem_dir
+  directory: sample/filesystem
+
+# Define where your sniffer regex patterns are located at.  These are text 
+# files containing regex patterns that will be used to search
+# file snippets for secrets.  You can find sample files located under
+# config/sniffer
+MellonRegexSniffer:
+ pattern_files: 
+  byte: config/sniffer/sniffer_regex_byte.cfg       # patterns only applied to binary files
+  unicode: config/sniffer/sniffer_regex_unicode.cfg # patterns only applied to text files
+  all: config/sniffer/sniffer_regex_all.cfg         # patterns applied to binary and text files
+
+# Define where your whitelist regex patterns are located at.  These are text
+# files containing regex patterns that will be used to whitelist files and 
+# matched secrets.  This helps reduce the noise ratio on known/accepted
+# secrets publication areas.
+MellonRegexWhitelist:
+ pattern_files:
+  file: config/whitelist/whitelist_regex_file.cfg     # patterns applied to file identities
+  secret: config/whitelist/whitelist_regex_secret.cfg # patterns applied to identities of secrets
+  all: config/whitelist/whitelist_regex_all.cfg       # patterns applied to file and secret identities
+
+# ------------------
+# LEAVE THESE ALONE
+# ------------------
+
+# We need to register the components for:
+#  - regex based sniffing
+#  - regex based whitelisting
+#  - Python logger based reporting (e.g. stdout logging for sniffing matches)
+ZCMLConfiguration:
+ - package: mellon.sniffers.regex
+ - package: mellon.whitelists.regex
+ - package: mellon.reporters.logger
+
+# This defines how Mellon will parse unicode and byte file snippets for secrets.
+# We'll set some reasonable starting values.
+MellonSnippet: &defaul_mellon_snippet
+   lines_coverage: 10
+   lines_increment: 8
+   bytes_read_size: 512000
+   bytes_coverage: 8
+   bytes_increment: 7
+   
+# This will tell Mellon to recursively parse the directory defined above
+# for secret patterns defined in the regex files referenced above.
+MellonFileProviderFactory:
+ name: mellon.factories.filesystem.file_provider_for_recursive_directory_config
+ MellonSnippet: *defaul_mellon_snippet
+ FileSystemDir: *filesystem_dir
