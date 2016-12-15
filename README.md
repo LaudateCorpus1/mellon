@@ -10,27 +10,32 @@ defeated.  Frodo the hobbit looks up and reads the inscription once again:
 
 ## Got no time?  Here's the quickstart:
 **Installation**
- - [OSX Installation Guide](https://XXX)
+ - [OSX Installation Guide](https://github.com/CrowdStrike/mellon/blob/master/docs/install-OSX.md)
 
 **Simple Configuration Samples**
 
 Mellon requires a runtime YAML configuration file.  You can find all the
-configuration definitions [here](https://XXX), but to help ease your entry
-into Mellon usage we've also provided these simple starter configs for you.
- - [File system scanning](https://XXX). This will scan a directory
-   recursively for secrets.  Make sure to update the config file with the
-   directory path you'd like to scan.
+configuration definitions 
+[here](https://github.com/CrowdStrike/mellon/blob/master/mellon/config_definitions.yaml), 
+but to help ease your entry into Mellon usage we've also provided these simple 
+starter configs for you.
+ - [File system scanning](https://github.com/CrowdStrike/mellon/blob/master/config/filesystem.mcfg). 
+   This will scan a directory recursively for secrets.  Make sure to update 
+   the config file with the directory path you'd like to scan.
    * launch command: `bin/mellon config/filesystem.mcfg`
- - [GIT repo scanning](https://XXX).  This will scan a directory that contains
-   one or more GIT repositories for secrets.  This will scan all of the GIT
-   database resources and their complete revision histories.  We recommend to
-   to clone your repos from the origin server to a separate area for this scanning (as the scan will perform git checkouts of the full commit history)
+ - [GIT repo scanning](https://github.com/CrowdStrike/mellon/blob/master/config/git.mcfg).  
+   This will scan a directory that contains one or more GIT repositories for 
+   secrets.  This will scan all of the GIT database resources and their 
+   complete revision histories.  We recommend to to clone your repos from the 
+   origin server to a separate area for this scanning (as the scan will 
+   perform git checkouts of the full commit history)
    * launch command: `bin/mellon config/git.mcfg`
 
 All the samples leverage the regex based sniffer component whose patterns are
-defined [here](https://XXX).  Feel free to create your own custom match
-patterns, but if you use different files make sure to update the Mellon
-YAML config file accordingly (it will be the _MellonRegexSniffer_ entry)
+defined [here](https://github.com/CrowdStrike/mellon/tree/master/config/sniffer).  
+Feel free to create your own custom match patterns, but if you use different 
+files make sure to update the Mellon YAML config file accordingly (it 
+will be the _MellonRegexSniffer_ entry)
 
 ## What is Mellon?
 Mellon is a Python runtime application that looks for secrets (like
