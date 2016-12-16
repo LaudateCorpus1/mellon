@@ -6,6 +6,13 @@ ScrapySettings:
  SETTING_ONE: VALUE_ONE
  SETTING_TWO: VALUE_TWO
 
+#ScrapyFormData
+# A very basic method to identify html form fields and their values.  field
+# names and values are arbitrary to your needs
+ScrapyFormData: &form_data
+ field_1: data_1
+ field_2: data_2
+
 #ScrapySimpleTextWebsiteCrawler
 # A minimalist configuration of a scrapy.spiders.CrawlSpider.  Provides
 # information needed to create a basic CrawlSpider.  This is 
@@ -21,8 +28,9 @@ ScrapySettings:
 #  - start_urls will be the list of urls
 ScrapySimpleTextWebsiteCrawler:
  urls:
-  - http://sample1.url.com
+  - http://sample1.url.com/login.php
   - https://sample2.url.com/start_page.htm
+ ScrapyFormData: *form_data #optional auth information if url is a form-based auth processor
  ScrapySettings: *reference #optional
  RulesListFactory: python.module.callable #optional, Python callable that produces list of Rules 
  attributes: #optional

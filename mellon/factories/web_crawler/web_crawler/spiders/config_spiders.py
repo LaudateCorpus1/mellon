@@ -3,6 +3,7 @@ from zope import interface
 import importlib
 from hashlib import md5
 import mellon
+import scrapy
 from scrapy.linkextractors import LinkExtractor
 import scrapy.spiders
 try:
@@ -56,6 +57,12 @@ class MellonSpiderMixin(scrapy.spiders.CrawlSpider):
                                         callback='parse_item'),)
     
     def parse_start_url(self, response):
+        if hasattr(self, 'auth_form_data'):
+            # see https://doc.scrapy.org/en/latest/topics/request-response.html#topics-request-response-ref-request-userlogin
+            return scrapy.FormRequest.from_response(
+                    response,
+                    formdata=self.auth_form_data,
+                    callback=self.parse_item) 
         return self.parse_item(response)
     
     def parse_item(self, response):
@@ -84,6 +91,8 @@ def ScrapySimpleMellonWebsiteCrawlerTypeFromConfigFactory(config):
          'start_urls' : config['urls'],
          'custom_settings': {}
          }
+    if 'ScrapyFormData' in config:
+        type_dict['auth_form_data'] = config['ScrapyFormData']
     if 'attributes' in config:
         type_dict.update(config['attributes'])
     if 'ScrapySettings' in config:
