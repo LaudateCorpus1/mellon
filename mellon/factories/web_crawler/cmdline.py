@@ -1,14 +1,12 @@
 """
 Allow use of native Scrapy CLI app with Mellon config based scrapers.
 """
-from zope import interface
+import mellon.mellon
 import mellon.factories.web_crawler
 from sparc.configuration.container import application
 import os
 import scrapy.cmdline
 import sys
-
-from mellon import mellon
 
 def get_cli_args():
     """Return 2 entry tuple
@@ -39,8 +37,8 @@ def main():
         # We'll create and register a Mellon app.  this will allow
         # Scrapy components to find the app config via registry look-ups.
         sys.argv = args_mellon
-        args = application.getScriptArgumentParser(mellon.DESCRIPTION).parse_args()
-        mellon.create_and_register_app(args.config_file, args.verbose, args.debug)
+        args = application.getScriptArgumentParser(mellon.mellon.DESCRIPTION).parse_args()
+        mellon.mellon.create_and_register_app(args.config_file, args.verbose, args.debug)
         # run scrapy (from scrapy project dir)
         sys.argv = args_scrapy
         os.chdir(os.path.dirname(mellon.factories.web_crawler.__file__))
