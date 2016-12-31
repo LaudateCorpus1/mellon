@@ -1,0 +1,16 @@
+#ConfluenceConnection
+# Identifies attributes needed to establish a connection to a Confluence api
+# server.
+ConfluenceConnection:
+ url: http://your.confluence.server:your_api_port_number # may also be https
+ username: your_username #optional
+ password: your_password #optional
+
+#ConfluenceSpaceContent
+# Describes parameters that can be used to browse Confluence content.
+ConfluenceSpaceContent:
+ ConfluenceConnection: *reference
+ RequestOptions: *reference (see sparc.utils.requests[configure.yaml])
+ ContentSearch: valid csql search string #optional, content filtered based on query
+ SearchHistory: False #optional, True indicates to enumerate item versions
+ SearchHistoryRequestWorkers: 2 #optional, number of asynchronous client workers for SearchHistory

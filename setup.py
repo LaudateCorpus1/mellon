@@ -52,6 +52,10 @@ setup(name='mellon',
           #mellon.factories.web_cralwer
           'scrapy',
           'twisted',
+          #mellon.factories.confluence
+          'datrie',
+          'requests-futures',
+          'sparc.utils'
           # -*- Extra requirements: -*-
       ],
       tests_require=[

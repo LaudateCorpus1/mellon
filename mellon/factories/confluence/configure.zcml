@@ -1,0 +1,14 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon">
+    
+    <include package="sparc.utils" />
+
+    <utility
+        provides="zope.component.IFactory"
+    	component=".file.mellonFileProviderFromConfluenceConfigFactory"
+    	name="mellon.factories.confluence.file_provider_for_confluence"
+    	/>
+
+</configure>
