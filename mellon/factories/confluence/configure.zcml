@@ -6,8 +6,13 @@
     <include package="sparc.utils" />
 
     <utility
+    	component=".binary.binaryCheckerForConfluenceItemFactory"
+    	name="mellon.factories.confluence.attachment_bin_checker"
+    	/>
+
+    <utility
         provides="zope.component.IFactory"
-    	component=".file.mellonFileProviderFromConfluenceConfigFactory"
+    	component=".file.tsMellonFileProviderFromConfluenceConfigFactory"
     	name="mellon.factories.confluence.file_provider_for_confluence"
     	/>
 

@@ -12,5 +12,6 @@ ConfluenceSpaceContent:
  ConfluenceConnection: *reference
  RequestOptions: *reference (see sparc.utils.requests[configure.yaml])
  ContentSearch: valid csql search string #optional, content filtered based on query
+ ContentPaginationLimit: 25 #optional, number of api results to return with each result query
  SearchHistory: False #optional, True indicates to enumerate item versions
  SearchHistoryRequestWorkers: 2 #optional, number of asynchronous client workers for SearchHistory

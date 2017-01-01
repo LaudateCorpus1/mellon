@@ -1,6 +1,10 @@
+from concurrent.futures import ThreadPoolExecutor
 import io
 import datrie
+from requests.models import Response
 import string
+import threading
+import time
 import types
 import warnings
 from requests_futures.sessions import FuturesSession
@@ -13,21 +17,37 @@ import mellon.file
 
 try:
     from urllib import quote_plus
+    from Queue import Queue, Empty
 except ImportError:
     from urllib.parse import quote_plus
+    from queue import Queue, Empty
 
+from sparc.configuration import container
 from sparc.utils import requests
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
-PAGINATION_LIMIT = '25'
-DEFAULT_REQUEST_WORKERS = 2
+DEFAULT_PAGINATION_LIMIT = '25'
+DEFAULT_REQUEST_WORKERS = 1
 
 
-class MellonByteFileFromURLConfigAndRequester(
-                            mellon.file.MellonByteFileFromFileStreamAndConfig):
+class MellonUnicodeFileFromURLItemAndConfig(
+                        mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
     
+    def __init__(self, url, response, config):
+        self.url = url 
+        super(MellonUnicodeFileFromURLItemAndConfig, self).__init__(
+                    io.StringIO(response['body']['storage']['value']), config)
+    
+    def __str__(self):
+        return "unicode file at location {}".format(self.url)
+mellonUnicodeFileFromURLItemAndConfigFactory = Factory(
+                                MellonUnicodeFileFromURLItemAndConfig)
+
+
+class MellonByteFileFromConfluenceAttachment(
+                            mellon.file.MellonByteFileFromFileStreamAndConfig):
     @classmethod
     def add_reader(cls, response):
         """
@@ -43,90 +63,120 @@ class MellonByteFileFromURLConfigAndRequester(
         response.read = types.MethodType(_reader, response)
             
     
-    def __init__(self, url, config, requester, kwargs):
-        r = requester.request('GET', url, stream=True, **kwargs)
+    def __init__(self, url, config, requester, req_kwargs):
+        r = requester.request('GET', url, stream=True, **req_kwargs)
         r.raise_for_status()
-        MellonByteFileFromURLConfigAndRequester.add_reader(r)
+        MellonByteFileFromConfluenceAttachment.add_reader(r)
         self.url = url
-        super(MellonByteFileFromURLConfigAndRequester, self).__init__(r, config)
+        super(MellonByteFileFromConfluenceAttachment, self).__init__(r, config)
     
     def __str__(self):
-        return "byte file at location {}".format(self.url)
-mellonByteFileFromRURLConfigAndRequesterFactory = Factory(
-                                    MellonByteFileFromURLConfigAndRequester)
+        return "byte file attachment at location {}".format(self.url)
+mellonByteFileFromConfluenceAttachmentFactory = Factory(
+                                    MellonByteFileFromConfluenceAttachment)
 
-class MellonUnicodeFileFromBaseURLResponseAndConfig(
-                        mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
-    
-    def __init__(self, url, response, config):
-        self.url = url 
-        super(MellonUnicodeFileFromBaseURLResponseAndConfig, self).__init__(
-                    io.StringIO(response['body']['storage']['value']), config)
+
+class MellonUnicodeFileFromConfluenceAttachment(
+                            mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
+    @classmethod
+    def replace_line_iterator(cls, response):
+        """
+        Replace the default __iter__ method on a response object to iterate
+        line-by-line as opposed to default byte-based increments.
+        """
+        response.__iter__ = types.MethodType(Response.iter_lines, response)
+
+    def __init__(self, url, config, requester, req_kwargs):
+        r = requester.request('GET', url, stream=True, **req_kwargs)
+        r.raise_for_status()
+        MellonUnicodeFileFromConfluenceAttachment.replace_line_iterator(r)
+        self.url = url
+        super(MellonUnicodeFileFromConfluenceAttachment, self).__init__(r, config)
     
     def __str__(self):
-        return "unicode file at location {}".format(self.url)
-mellonUnicodeFileFromResponseAndConfigFactory = Factory(
-                                MellonUnicodeFileFromBaseURLResponseAndConfig)
+        return "unicode file attachment at location {}".format(self.url)
+mellonUnicodeFileFromConfluenceAttachmentFactory = Factory(
+                                    MellonUnicodeFileFromConfluenceAttachment)
 
 @interface.implementer(IMellonFileProvider)
-class MellonFileProviderFromConfluenceConfig(object):
+class TSMellonFileProviderFromConfluenceConfig(object):
+    
+    
+    def debug(self):
+        logger.setLevel('DEBUG')
     
     def __init__(self, config):
-        """Init
-        
-        Args:
-            config: sparc.configuration.container.ISparcAppPyContainerConfiguration
-                    provider with:
-                      - mellon[config_definitions.yaml:MellonSnippet] entry
-                      - mellon.factories.confluence[configure.yaml:ConfluenceSpaceContent] entry
-        """
+        #General items
         self.config = config
-        self.prune = datrie.Trie(string.printable) #make sure to not request same data twice from Confluence API
-        self.url = self.config\
-                ['ConfluenceSpaceContent']['ConfluenceConnection']['url'] + \
-                                                            '/rest/api/content'
-        #We'll leverage async io for item history calls to speed thrings up (see https://github.com/ross/requests-futures)
-        self.async_session = FuturesSession(
-                        max_workers=int(config['ConfluenceSpaceContent'].get(
-                                    'RequestWorkers', DEFAULT_REQUEST_WORKERS)))
+        self.requester = self.get_requester()
         
-        # get a requester (used for non-async io API calls)
+        # Concurrency properties
+        self.mellon_files = Queue() # TS queue for IMellonFile providers
+        self.jobs = Queue() # TS queue for async jobs (concurrent.futures.Future objects)
+        self.count = 0 #keep track of job numbers for debuging
+        self.job_id = 0 #assign and track unique job ids
+        
+        # API properties
+        max_workers= int(container.IPyContainerConfigValue\
+                            (config['ConfluenceSpaceContent']).
+                                get('RequestWorkers', DEFAULT_REQUEST_WORKERS))
+        self.api_executer = ThreadPoolExecutor(max_workers = max_workers)
+        self.api_session = FuturesSession(self.api_executer)
+        
+        self.api_base = \
+            self.config['ConfluenceSpaceContent']['ConfluenceConnection']['url']
+        self.api_limit = '&limit=' + str(container.IPyContainerConfigValue\
+                                (config['ConfluenceSpaceContent']).\
+                                    get('ContentPaginationLimit', 
+                                        DEFAULT_PAGINATION_LIMIT))
+        self.api_expand = '&expand=history,version,body.storage'
+        
+        # Content directives
+        self.prune = datrie.Trie(string.printable) #make sure to not request same data twice from Confluence API
+        self.content_get_history = \
+            container.IPyContainerConfigValue(
+                config['ConfluenceSpaceContent']).get('SearchHistory', False)
+        
+        logger.debug(u"Threaded Confluence Mellon file provider initialized with {} worker threads".format(max_workers))
+    
+    def add_job(self, job):
+        self.count += 1
+        self.job_id += 1
+        self.jobs.put((self.job_id, job, ))
+        logger.debug('Job queue count at {}'.format(self.count))
+    
+    def get_job(self):
+        job_id, job = self.jobs.get_nowait()
+        self.count -= 1
+        logger.debug('Job queue count at {}'.format(self.count))
+        return (job_id, job, )
+
+    def get_requester(self):
+        """Retrieve the sparc.utils.requests.IRequest based on resolution and configuration
+        """
         req = None
-        if 'RequestOptions' in config['ConfluenceSpaceContent']:
-            req = requests.IRequest(config['ConfluenceSpaceContent'])
+        if 'RequestOptions' in self.config['ConfluenceSpaceContent']:
+            req = requests.IRequest(self.config['ConfluenceSpaceContent'])
         sm = component.getSiteManager()
         self.requester = sm.getUtility(requests.IRequestResolver)(request=req)
-        self.requester.req_kwargs = self._kwargs
-        logger.debug(u"initialized Confluence Mellon File factory with starting URL {}".format(self._start_url))
-
-    @property
-    def _expand(self):
-        """API content expansions (insures JSON dict key availability)"""
-        return '&expand=history,version,body.storage'
+        self.requester.req_kwargs = self.req_kwargs
+        return self.requester
     
     @property
-    def _filter(self):
+    def api_filter(self):
         """CQL based content filter.  Can be specified in config, or defaults to
         all content.
         """
         if 'ContentSearch' in self.config['ConfluenceSpaceContent']:
             return '/search?cql=' + quote_plus(\
                         self.config['ConfluenceSpaceContent']['ContentSearch'])
-        return "/search?cql=" + quote_plus("type IN (page, blogpost, comment, attachment)")
-
+        return "/search?cql=" + \
+                    quote_plus("type IN (page, blogpost, comment, attachment)")
+    
+    
     @property
-    def _start_url(self):
-        """First API call URL (with pagination limit parameter)"""
-        _start_url = self.url
-        if self._filter:
-            _start_url = _start_url + self._filter
-        _start_url = _start_url + ('&limit='+PAGINATION_LIMIT if self._filter \
-                                                else '?limit='+PAGINATION_LIMIT)
-        return _start_url+self._expand
-
-    @property
-    def _kwargs(self):
-        """Dict of kwargs to be passed into self.requester (e.g. Requests API)"""
+    def req_kwargs(self):
+        """Dict of kwargs to be passed into Requests API"""
         _kwargs = {}
         _conn_params = self.config['ConfluenceSpaceContent']['ConfluenceConnection']
         if _conn_params['username']:
@@ -137,117 +187,130 @@ class MellonFileProviderFromConfluenceConfig(object):
             if 'req_kwargs' in self.config['ConfluenceSpaceContent']['RequestOptions']:
                 _kwargs.update(self.config['ConfluenceSpaceContent']['RequestOptions']['req_kwargs'])
         return _kwargs
+        
 
-    def _request(self, url):
-        """Perform a HTTP request, check for error, and return JSON response"""
-        #import pdb;pdb.set_trace()
-        r = self.requester.request('GET', url)
-        r.raise_for_status()
-        return r.json()
-    
-    def _get_mfile_from_citem(self, base_url, i):
+    def get_mellon_file(self, item):
         """Return a new IMellonFile provider based on a Confluence JSON content item
         
         Args:
-            see _process_item()
+            item: Dict JSON Confluence content item
         """
-        if i['type'] == 'attachment':
-            return MellonByteFileFromURLConfigAndRequester(
-                    base_url+i['_links']['download'], self.config, 
-                    self.requester, self._kwargs)
-        else:
-            return MellonUnicodeFileFromBaseURLResponseAndConfig(
-                    base_url+ i['_links']['webui'], i, self.config)
-
-    def _get_item_history(self, base_url, i):
-        """Generator of IMellonFile providers for an item's historical versions.
-           
-        This will respect the self.requester settings (even though calls to 
-        the Requests library will happen outside of the self.requester context)
-        
-        Args:
-            see _process_item()
-        """  
-        session_requests = []
-        version = int(i['version']['number']) - 1
-        while version:
-            ver_url = self.url + '/' + i['id'] + \
-                        '?status=historical&version=' + \
-                        str(version) + self._expand
-            logger.debug(u"queueing Confluence item version {} for item {} for asynchronous processing".format(version, i['id']))
-            session_requests.append((self.async_session.request('GET', ver_url, **self._kwargs), version, ))
-            version -= 1
-        
-        for _req, version in session_requests:
-            r = _req.result()
-            r.raise_for_status()
-            i = r.json()
-            logger.debug(u"processed Confluence item version {} for item {}".format(version, i['id']))
-            yield self._get_mfile_from_citem(base_url, i)
-
-    def _process_versions(self, base_url, i):
-        """Generator for IMellonFile provider Confluence API content item and
-           its historical versions (if config indicates to retrieve item
-           history).
-        Args:
-            see _process_item()
-        """
-        # Return IMellonFile for item
-        version = int(i['version']['number'])
-        logger.debug(u"processing Confluence item version {} for item {}".format(version, i['id']))
-        yield self._get_mfile_from_citem(base_url, i)
-        
-        # recurse through item history (if config indicates to do so)
-        # we'll do this with async io because it can take a while to make lots
-        # of API calls.
-        if self.config['ConfluenceSpaceContent'].get('SearchHistory', False):
-            if self.requester.gooble_warnings:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    for f in self._get_item_history(base_url, i):
-                        yield f
+        if item['type'] == 'attachment':
+            bin_checker = component.createObject(u"mellon.factories.confluence.attachment_bin_checker", item)
+            if bin_checker.check():
+                logger.debug('creating mellon byte file for attachment content {} with link {}'.format(item['id'], item['_links']['download']))
+                return MellonByteFileFromConfluenceAttachment(
+                    self.api_base + item['_links']['download'], self.config, 
+                    self.requester, self.req_kwargs)
             else:
-                for f in self._get_item_history(base_url, i):
-                    yield f
-            
-
-    def _process_item(self, base_url, i):
-        """Generator of IMellonFile providers related to a Confluence JSON content item
-        
-        This will keep track of processed items via a trie data-structure for
-        memory efficiency.  Content items will only be processed once.  Item 
-        history will be returned based on configuration preference.
-        
-        Args:
-            base_url: Unicode base url string, corresponding to a Confluence API
-                      JSON return entry for ['_links']['base']
-            i: JSON item result entry with the following keys available/expanded:
-                - history
-                - version
-                - body.storage
-        """
-        if i['id'] not in self.prune:
-            logger.debug(u"processing Confluence item at {}".format(base_url+i['_links']['webui']))
-            for f in self._process_versions(base_url, i):
-                yield f
-            self.prune[i['id']] = None
+                logger.debug('creating mellon unicode file for attachment content {} with link {}'.format(item['id'], item['_links']['download']))
+                return MellonUnicodeFileFromConfluenceAttachment(
+                    self.api_base + item['_links']['download'], self.config, 
+                    self.requester, self.req_kwargs)
+                
         else:
-            logger.debug(u"skipping already processed item at {}".format(base_url+i['_links']['webui']))
+            return MellonUnicodeFileFromURLItemAndConfig(
+                    self.api_base + item['_links']['webui'], item, self.config)
 
-    def __iter__(self):
+    def get_item_history_info(self, item):
+        """Generator of historical version urls for given content item
+        
+        note:  urls are not guaranteed to be valid
+        
+        Return: (version, historical_url, )
         """
-        Iterate content based on a CQL search (which will return 'results').
-        If config hasn't specified any criteria, default to all Confluence
-        items 
-        """
-        # we don't do async here because results come back based on pagination settings
-        r = {'_links': {'next': self._start_url}}
-        while 'next' in r['_links']:
-            r = self._request(r['_links']['next'])
-            for i in r['results']:
-                for f in self._process_item(r['_links']['base'], i): # f is a mellon file of a Confluence item version
-                    yield f
-
+        version = int(item['version']['number']) - 1
+        while version:
+            yield (version, self.api_base + '/rest/api/content/' + item['id'] + \
+                        '?status=historical&version=' + \
+                        str(version) + self.api_expand)
+            version -= 1
+    
+    def process_item(self, item):
+        identifier = item['id'] + '---' + str(item['version']['number'])
+        if identifier not in self.prune:
+            logger.debug('adding job to create mellon file for content item {} at version {}'.format(item['id'], item['version']['number']))
+            self.add_job(self.api_executer.submit(self.get_mellon_file, item))
+            if item['history'].get('latest', False) and self.content_get_history: # add jobs for historical item versions if configured
+                for version, historical_url in self.get_item_history_info(item):
+                    logger.debug('adding job to get historical version {} for item {}'.format(version, item['id']))
+                    self.add_job(self.api_session.request(
+                        'GET',
+                        historical_url,
+                        **self.req_kwargs))
+            self.prune[identifier] = None
+        else:
+            logger.debug(u"skipping already processed item {} at {}".format(item['id'], self.api_base+item['_links']['webui']))
             
-mellonFileProviderFromConfluenceConfigFactory = Factory(MellonFileProviderFromConfluenceConfig)
-interface.alsoProvides(mellonFileProviderFromConfluenceConfigFactory, IMellonFileProviderFactory)
+        
+    
+    def process_results(self, result):
+        if 'results' in result:
+            logger.info(u"processing {} results from Confluence API response".format(len(result['results'])))
+            for item in result['results']:
+                self.process_item(item)
+            if 'next' in result['_links']: # add next results pagination into job queue
+                logger.debug('adding job to retrieve next results pagination at {}'.format(result['_links']['next']))
+                self.add_job(self.api_session.request(
+                            'GET',
+                            result['_links']['base'] + result['_links']['next'],
+                            **self.req_kwargs))
+ 
+    def generate_mellon_files(self):
+        """Threaded generator of IMellonFile providers populated to mellon_file queue"""
+        # init API entry point
+        r = {'_links': {'base': self.api_base, 
+                        'next': '/rest/api/content'+self.api_filter + \
+                                self.api_limit + self.api_expand}}
+        self.debug()
+        with warnings.catch_warnings():
+            if self.requester.gooble_warnings:
+                # TODO: limit this to only requests-related warnings
+                warnings.simplefilter("ignore")
+            #initialize async job queue with initial API call
+            logger.debug('adding job to retreive initial results pagination at {}'.format(r['_links']['next']))
+            self.add_job(self.api_session.request(
+                                    'GET',
+                                    r['_links']['base'] + r['_links']['next'],
+                                    **self.req_kwargs))
+            #continuously monitor job queue until it is empty.  Job results will be:
+            # - JSON API results based item feed from CQL query 
+            # - JSON API historical item version from content query
+            # - IMellonFile provider
+            while not self.jobs.empty():
+                job_id, job = self.get_job()
+                logger.debug('blocking while waiting for queued job {} to complete'.format(job_id))
+                result = job.result()
+                
+                if mellon.IMellonFile.providedBy(result):
+                    logger.debug('publishing mellon file to asynchronous iteration queue {}'.format(result))
+                    self.mellon_files.put(result)
+                    continue
+                
+                result.raise_for_status()
+                content = result.json()
+                
+                if 'results' in content:
+                    self.process_results(content)
+                else:
+                    self.process_item(content)
+
+    
+    def __iter__(self):
+        """Threaded generator of IMellonFile providers
+        """
+        t = threading.Thread(target=self.generate_mellon_files)
+        t.daemon = True
+        t.start()
+        while t.is_alive() or not self.mellon_files.empty():
+            try:
+                while not self.mellon_files.empty():
+                    yield self.mellon_files.get_nowait()
+            except Empty:
+                pass
+            time.sleep(.5)
+        t.join()
+        logger.debug('exiting asynchronous iteration queue publisher thread')
+
+tsMellonFileProviderFromConfluenceConfigFactory = Factory(TSMellonFileProviderFromConfluenceConfig)
+interface.alsoProvides(tsMellonFileProviderFromConfluenceConfigFactory, IMellonFileProviderFactory)
