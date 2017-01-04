@@ -9,16 +9,12 @@ logger = logging.getLogger(__name__)
 def logger_reporter_for_secret_sniffers(event):
     for sniffer in component.subscribers((event.object,), mellon.ISecretSniffer):
         for secret in sniffer:
-            wht_lstd = False
-            for wht_lst in component.subscribers((secret,), mellon.IWhitelist):
-                for wht_lst_info in wht_lst:
-                    logger.info(u"skipping white-listed secret: {} because {}".format(secret, wht_lst_info))
-                    wht_lstd = True
-                    
-            if not wht_lstd:
-                logging.warn(\
-                    u"Found secret in file snippet.  Secret information: [{}]. Snippet information: [{}].  File information: [{}]."\
-                    .format(secret, event.object.__name__, event.object.__parent__))
+            if component.getUtility(mellon.IWhitelistChecker).check(secret):
+                logger.info(u"skipping white-listed secret: {}".format(secret))
+                continue
+            logging.warn(\
+                u"Found secret in file snippet.  Secret information: [{}]. Snippet information: [{}].  File information: [{}]."\
+                .format(secret, event.object.__name__, event.object.__parent__))
 
 @interface.implementer(mellon.ISecret)
 class TestSecret(object):

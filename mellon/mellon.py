@@ -35,18 +35,15 @@ class Mellon(application.YamlCliAppMixin):
             self.logger.info(u"found MellonFileProviderFactory config entry with name: {}".format(d['name']))
             try:
                 for f in fprovider: # iterate the files in the provider
-                    wht_lstd = False
-                    for wht_lst in component.subscribers((f,), mellon.IWhitelist):
-                        for wht_lst_info in wht_lst:
-                            self.logger.info(u"skipping white-listed file: {} because {}".format(f, wht_lst_info))
-                            wht_lstd = True
-                    if not wht_lstd:
-                        self.logger.info(u"searching for secrets in file: {}".format(f))
-                        for s in f: # iterate the data snippets in the file (s provides ISnippet)
-                            #App reporters should subscribe to this event feed.  Each
-                            #reporter is responsible to find/execute the sniffers and
-                            #also to insure whitelisted secrets are not reported on.
-                            event.notify(SnippetAvailableForSecretsSniffEvent(s)) 
+                    if component.getUtility(mellon.IWhitelistChecker).check(f):
+                        self.logger.info(u"skipping white-listed file: {}".format(f))
+                        continue
+                    self.logger.info(u"searching for secrets in file: {}".format(f))
+                    for s in f: # iterate the data snippets in the file (s provides ISnippet)
+                        #App reporters should subscribe to this event feed.  Each
+                        #reporter is responsible to find/execute the sniffers and
+                        #also to insure whitelisted secrets are not reported on.
+                        event.notify(SnippetAvailableForSecretsSniffEvent(s))
             except Exception:
                 traceback.print_exc()
         self.logger.info(u"completed MellonFileProviderFactory config file entry search")

@@ -15,4 +15,5 @@ from .interfaces import ISnippetIterator
 from .interfaces import IUnicodeMellonFile
 from .interfaces import IUnicodeSnippet
 from .interfaces import IWhitelist
+from .interfaces import IWhitelistChecker
 from .interfaces import IWhitelistInfo

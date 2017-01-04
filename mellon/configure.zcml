@@ -42,5 +42,10 @@
         component=".whitelist.whitelistInfoFactory"
         name="mellon.whitelist_info"
         />
+    
+    <utility
+        provides=".IWhitelistChecker"
+        factory=".whitelist.WhitelistChecker"
+        />
 
 </configure>

@@ -112,3 +112,8 @@ class IWhitelist(interface.Interface):
     """Identifies if object is whitelisted"""
     def __iter__():
         """Iterator of found IWhitelistInfo providers"""
+
+class IWhitelistChecker(interface.Interface):
+    """Object whitelist checker"""
+    def check(item):
+        """True if item is whitelisted in any registered IWhitelist provider"""
