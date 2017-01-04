@@ -11,6 +11,7 @@ from requests_futures.sessions import FuturesSession
 from zope import component
 from zope import interface
 from zope.component.factory import Factory
+from mellon import IApplyAuthorizationContext
 from mellon import IMellonFileProvider
 from mellon import IMellonFileProviderFactory
 import mellon.file
@@ -108,6 +109,7 @@ class TSMellonFileProviderFromConfluenceConfig(object):
     def __init__(self, config):
         #General items
         self.config = config
+        self.security_context = self.authorization_context()
         self.requester = self.get_requester()
         
         # Concurrency properties
@@ -138,6 +140,17 @@ class TSMellonFileProviderFromConfluenceConfig(object):
                 config['ConfluenceSpaceContent']).get('SearchHistory', False)
         
         logger.debug(u"Threaded Confluence Mellon file provider initialized with {} worker threads".format(max_workers))
+    
+    def authorization_context(self):
+        sec_context = component.createObject(u'mellon.authorization_context', )
+        sec_context.identity = \
+                container.IPyContainerConfigValue(
+                    self.config['ConfluenceSpaceContent']['ConfluenceConnection']).get(
+                        'username', '')
+        sec_context.description = \
+                container.IPyContainerConfigValue(
+                    self.config['ConfluenceSpaceContent']['ConfluenceConnection']).get(
+                        'context', '')
     
     def add_job(self, job):
         self.count += 1
@@ -305,7 +318,9 @@ class TSMellonFileProviderFromConfluenceConfig(object):
         while t.is_alive() or not self.mellon_files.empty():
             try:
                 while not self.mellon_files.empty():
-                    yield self.mellon_files.get_nowait()
+                    f = self.mellon_files.get_nowait()
+                    self.sm.getUtility(IApplyAuthorizationContext)(self.security_context, f)
+                    yield f
             except Empty:
                 pass
             time.sleep(.5)

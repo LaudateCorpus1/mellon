@@ -1,5 +1,6 @@
 from zope import component
 from zope import interface
+from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.interface.interfaces import IObjectEvent
 from zope import location
 from sparc.configuration.container import ISparcPyContainerConfiguredApplication
@@ -54,7 +55,7 @@ class IPath(interface.Interface):
 class IFile(interface.Interface):
     """Marker for file-like object providing Python's file object interface"""
 
-class IMellonFile(ISnippetIterator):
+class IMellonFile(ISnippetIterator, IAttributeAnnotatable):
     """A file to be processed by the application"""
     def __str__():
         """String locatable identity of file"""
@@ -117,3 +118,24 @@ class IWhitelistChecker(interface.Interface):
     """Object whitelist checker"""
     def check(item):
         """True if item is whitelisted in any registered IWhitelist provider"""
+
+# SECURITY
+class IAuthorizationContext(interface.Interface):
+    """Information about contextual identity."""
+    identity = interface.Attribute("Text identity")
+    description = interface.Attribute("Text context describer")
+    
+    def __str__(self):
+        """String representation of authorization context"""
+
+class IApplyAuthorizationContext(interface.Interface):
+    def __call__(context, item):
+        """Apply a security context to a item
+        
+        Args:
+            context: IAuthorizationContext provider
+            item: item that is adaptable into a IAuthorizationContext provider
+        
+        Returns:
+            IAuthorizationContext provider for item with context's attributes applied
+        """

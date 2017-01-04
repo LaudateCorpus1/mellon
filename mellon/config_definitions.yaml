@@ -19,6 +19,7 @@
    url: http://your_server:7990
    username: your_username
    password: your_password
+   context: some basic contextual security information about the login (i.e. engineering user, etc)
    requests:
     verify: True # [True|False|cert_path] SSL cert verification directive
 

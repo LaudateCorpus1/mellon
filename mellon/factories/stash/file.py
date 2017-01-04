@@ -1,6 +1,8 @@
 from zope import component
 from zope import interface
 from zope.component.factory import Factory
+from sparc.configuration import container
+from mellon import IApplyAuthorizationContext
 from mellon import IMellonFileProvider
 from mellon import IMellonFileProviderFactory
 
@@ -17,7 +19,20 @@ class MellonFileProviderFromStashConfig(object):
             config: sparc.configuration.container.ISparcAppPyContainerConfiguration
                     provider with sparc.git.stash[configure.yaml:StashProjectRepos] entry
         """
+        self.sm = component.getSiteManager()
         self.config = config
+        self.security_context = self.authorization_context()
+    
+    def authorization_context(self):
+        sec_context = component.createObject(u'mellon.authorization_context', )
+        sec_context.identity = \
+                container.IPyContainerConfigValue(
+                    self.config['StashProjectRepos']['StashConnection']).get(
+                        'username', '')
+        sec_context.description = \
+                container.IPyContainerConfigValue(
+                    self.config['StashProjectRepos']['StashConnection']).get(
+                        'context', '')
     
     def __iter__(self):
         """
@@ -54,6 +69,7 @@ class MellonFileProviderFromStashConfig(object):
                     u'mellon.factories.git.file_provider_from_git_repos_base_directory',
                     config)
         for f in git_file_provider:
+            self.sm.getUtility(IApplyAuthorizationContext)(self.security_context, f)
             yield f
 
 MellonFileProviderFromStashConfigFactory = Factory(MellonFileProviderFromStashConfig)

@@ -5,6 +5,7 @@ ConfluenceConnection:
  url: http://your.confluence.server:your_api_port_number # may also be https
  username: your_username #optional
  password: your_password #optional
+ context: some basic contextual security info #optional, (ex. engineering person)
 
 #ConfluenceSpaceContent
 # Describes parameters that can be used to browse Confluence content.

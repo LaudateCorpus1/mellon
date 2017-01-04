@@ -38,7 +38,7 @@ class Mellon(application.YamlCliAppMixin):
                     if component.getUtility(mellon.IWhitelistChecker).check(f):
                         self.logger.info(u"skipping white-listed file: {}".format(f))
                         continue
-                    self.logger.info(u"searching for secrets in file: {}".format(f))
+                    self.logger.info(u"searching for secrets in file: {} with authorization {}".format(f, mellon.IAuthorizationContext(f)))
                     for s in f: # iterate the data snippets in the file (s provides ISnippet)
                         #App reporters should subscribe to this event feed.  Each
                         #reporter is responsible to find/execute the sniffers and

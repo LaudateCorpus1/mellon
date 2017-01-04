@@ -1,6 +1,6 @@
 from .mellon import create_and_register_app
 import mellon
-from .interfaces import IPath
+from .interfaces import IPath, IBinaryChecker
 from sparc.testing.testlayer import SparcZCMLFileLayer
 from zope import component
 from zope.component.testlayer import LayerBase
@@ -74,7 +74,7 @@ class MellonRuntimeTestExample(unittest.TestCase):
         self.assertEquals(self.report[0], 'Some ISecret string')
 """
         
-@interface.implementer(mellon.IBinaryChecker)
+@interface.implementer(IBinaryChecker)
 @component.adapter(IPath)
 class RegexTesterBinaryChecker(object):
     def __init__(self, context):

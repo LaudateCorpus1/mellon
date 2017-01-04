@@ -21,6 +21,6 @@ def memory_reporter_for_secret_sniffers(event):
                 logger.info(u"skipping white-listed secret: {}".format(secret))
                 continue
             logging.info(\
-                u"Found secret in file snippet.  Secret information: [{}]. Snippet information: [{}].  File information: [{}]."\
-                .format(secret, event.object.__name__, event.object.__parent__))
+                u"Found secret in file snippet.  Secret information: [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
+                .format(secret, event.object.__name__, event.object.__parent__, mellon.IAuthorizationContext(event.object)))
             report.append(secret)
