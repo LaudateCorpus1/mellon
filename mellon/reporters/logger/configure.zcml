@@ -3,7 +3,7 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon.reporters.logger">
 
-    <subscriber handler=".logger.logger_reporter_for_secret_sniffers" />
+    <subscriber handler=".logger.logger_reporter_for_secret" />
     
     <!-- TEST SNIFFER SUBSCRIPTION
     <subscriber

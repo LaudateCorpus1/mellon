@@ -10,6 +10,7 @@ from .interfaces import IMellonFileProvider
 from .interfaces import IMellonFileProviderFactory
 from .interfaces import IPath
 from .interfaces import ISecret
+from .interfaces import ISecretDiscoveredEvent
 from .interfaces import ISecretSniffer
 from .interfaces import ISnippet
 from .interfaces import ISnippetAvailableForSecretsSniffEvent

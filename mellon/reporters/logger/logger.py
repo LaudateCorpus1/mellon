@@ -5,16 +5,14 @@ import mellon
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
-@component.adapter(mellon.ISnippetAvailableForSecretsSniffEvent)
-def logger_reporter_for_secret_sniffers(event):
-    for sniffer in component.subscribers((event.object,), mellon.ISecretSniffer):
-        for secret in sniffer:
-            if component.getUtility(mellon.IWhitelistChecker).check(secret):
-                logger.info(u"skipping white-listed secret: {}".format(secret))
-                continue
-            logging.warn(\
+@component.adapter(mellon.ISecretDiscoveredEvent)
+def logger_reporter_for_secret(event):
+    secret = event.object
+    snippet = secret.__parent__
+    mfile = snippet.__parrent__
+    logging.warn(\
                 u"Found secret in file snippet.  Secret information: [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
-                .format(secret, event.object.__name__, event.object.__parent__, mellon.IAuthorizationContext(event.object)))
+                .format(secret, snippet, mfile, mellon.IAuthorizationContext(snippet)))
 
 @interface.implementer(mellon.ISecret)
 class TestSecret(object):

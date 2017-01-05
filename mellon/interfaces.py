@@ -8,6 +8,8 @@ from sparc.configuration.container import ISparcPyContainerConfiguredApplication
 #EVENTS
 class ISnippetAvailableForSecretsSniffEvent(IObjectEvent):
     """An object providing ISnippet is ready to be sniffed for secrets"""
+class ISecretDiscoveredEvent(IObjectEvent):
+    """An object providing ISecret has been discovered"""
 
 #APPLICATION & FACTORIES
 class IMellonApplication(ISparcPyContainerConfiguredApplication):

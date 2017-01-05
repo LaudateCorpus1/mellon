@@ -8,6 +8,8 @@
     <include package="sparc.git" />
     
     <include package=".factories" />
+
+    <subscriber handler=".sniffer.global_secret_sniffer_processor" />
     
     <utility
         component=".path.filesystemPathFactory"
