@@ -1,0 +1,4 @@
+#MellonJsonReporter
+# Describes where to write json files for discovered secrets
+MellonJsonReporter:
+ directory: absolute/or/relative/directory/path/to/store/json/files/in
