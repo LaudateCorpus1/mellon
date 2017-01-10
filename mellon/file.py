@@ -105,6 +105,10 @@ class MellonUnicodeFileFromFileStreamAndConfig(object):
         if self.snippet_interfaces:
             interface.alsoProvides(snippet, *self.snippet_interfaces)
         return snippet
+    
+    def _process_line(self, line):
+        """Class extenders can override this method to manipulate the buffered line"""
+        return line
 
     def __iter__(self):
         _end = 0
@@ -112,7 +116,7 @@ class MellonUnicodeFileFromFileStreamAndConfig(object):
         _eof_buffer = collections.deque()
         for line in self.file_stream:
             # add line to buffer
-            _buffer.append(line)
+            _buffer.append(self._process_line(line))
             _end += 1
             # empty over full buffer based on snippet increments
             if len(_buffer) > self.snippet_lines_coverage:
@@ -134,3 +138,8 @@ class MellonUnicodeFileFromFileStreamAndConfig(object):
                 _buffer.appendleft(_eof_buffer.pop())
             yield self._buffer_snippet(_buffer, _end)
 mellonUnicodeFileFromFileStreamAndConfigFactory = Factory(MellonUnicodeFileFromFileStreamAndConfig)
+
+"""
+These components are abit of a hack in order to be able to manipulate 
+Unicode data that is parsed.  An example of when 
+"""
