@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 import io
 import datrie
@@ -16,7 +17,8 @@ from mellon import IMellonFileProvider
 from mellon import IMellonFileProviderFactory
 import mellon.file
 from . import IConfluenceMellonFile
-from . import IConfluenceSnippet
+from . import IConfluenceBytesSnippet
+from . import IConfluenceUnicodeSnippet
 
 try:
     from urllib import quote_plus
@@ -40,12 +42,23 @@ class MellonUnicodeFileFromURLItemAndConfig(
     
     def __init__(self, url, response, config):
         self.url = url 
+        self.config = config
         super(MellonUnicodeFileFromURLItemAndConfig, self).__init__(
                     io.StringIO(response['body']['storage']['value']), config,
-                    snippet_interfaces=[IConfluenceSnippet])
+                    snippet_interfaces=[IConfluenceUnicodeSnippet])
+        self.strip_html = container.IPyContainerConfigValue(
+                    self.config['ConfluenceSpaceContent']).get(
+                                                        'StripHtmlTags', False)
     
     def __str__(self):
         return "unicode file at location {}".format(self.url)
+    
+    def _process_line(self, line):
+        if not self.strip_html:
+            return line
+        soup = BeautifulSoup(line, 'html.parser')
+        return soup.get_text()
+        
 mellonUnicodeFileFromURLItemAndConfigFactory = Factory(
                                 MellonUnicodeFileFromURLItemAndConfig)
 #interface.classImplements(MellonUnicodeFileFromURLItemAndConfig, IConfluenceMellonFile)
@@ -74,7 +87,7 @@ class MellonByteFileFromConfluenceAttachment(
         MellonByteFileFromConfluenceAttachment.add_reader(r)
         self.url = url
         super(MellonByteFileFromConfluenceAttachment, self).\
-                    __init__(r, config, snippet_interfaces=[IConfluenceSnippet])
+                    __init__(r, config, snippet_interfaces=[IConfluenceBytesSnippet])
     
     def __str__(self):
         return "byte file attachment at location {}".format(self.url)
@@ -94,15 +107,25 @@ class MellonUnicodeFileFromConfluenceAttachment(
         response.__iter__ = types.MethodType(Response.iter_lines, response)
 
     def __init__(self, url, config, requester, req_kwargs):
+        self.config = config
         r = requester.request('GET', url, stream=True, **req_kwargs)
         r.raise_for_status()
         MellonUnicodeFileFromConfluenceAttachment.replace_line_iterator(r)
         self.url = url
+        self.strip_html = container.IPyContainerConfigValue(
+                    self.config['ConfluenceSpaceContent']).get(
+                                                        'StripHtmlTags', False)
         super(MellonUnicodeFileFromConfluenceAttachment, self).\
-                    __init__(r, config, snippet_interfaces=[IConfluenceSnippet])
+                    __init__(r, config, snippet_interfaces=[IConfluenceUnicodeSnippet])
     
     def __str__(self):
         return "unicode file attachment at location {}".format(self.url)
+    
+    def _process_line(self, line):
+        if not self.strip_html:
+            return line
+        soup = BeautifulSoup(line, 'html.parser')
+        return soup.get_text()
 mellonUnicodeFileFromConfluenceAttachmentFactory = Factory(
                                     MellonUnicodeFileFromConfluenceAttachment)
 #interface.classImplements(MellonUnicodeFileFromConfluenceAttachment, IConfluenceMellonFile)

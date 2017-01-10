@@ -16,3 +16,4 @@ ConfluenceSpaceContent:
  ContentPaginationLimit: 25 #optional, number of api results to return with each result query
  SearchHistory: False #optional, True indicates to enumerate item versions
  SearchHistoryRequestWorkers: 2 #optional, number of asynchronous client workers for SearchHistory
+ StripHtmlTags: False #optional, True indicates to strip HTML tags from content

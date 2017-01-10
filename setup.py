@@ -56,7 +56,8 @@ setup(name='mellon',
           #mellon.factories.confluence
           'datrie',
           'requests-futures',
-          'sparc.utils'
+          'sparc.utils',
+          'beautifulsoup4 '
           # -*- Extra requirements: -*-
       ],
       tests_require=[

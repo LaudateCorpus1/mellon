@@ -5,3 +5,9 @@ class IConfluenceMellonFile(interface.Interface):
 
 class IConfluenceSnippet(interface.Interface):
     """Marker for confluence snippets"""
+
+class IConfluenceBytesSnippet(IConfluenceSnippet):
+    """Marker for confluence bytes snippets"""
+
+class IConfluenceUnicodeSnippet(IConfluenceSnippet):
+    """Marker for confluence unicode snippets"""
