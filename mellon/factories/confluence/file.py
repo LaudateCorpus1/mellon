@@ -15,6 +15,8 @@ from mellon import IApplyAuthorizationContext
 from mellon import IMellonFileProvider
 from mellon import IMellonFileProviderFactory
 import mellon.file
+from . import IConfluenceMellonFile
+from . import IConfluenceSnippet
 
 try:
     from urllib import quote_plus
@@ -32,21 +34,23 @@ logger = logging.getLogger(__name__)
 DEFAULT_PAGINATION_LIMIT = '25'
 DEFAULT_REQUEST_WORKERS = 1
 
-
+@interface.implementer(IConfluenceMellonFile)
 class MellonUnicodeFileFromURLItemAndConfig(
                         mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
     
     def __init__(self, url, response, config):
         self.url = url 
         super(MellonUnicodeFileFromURLItemAndConfig, self).__init__(
-                    io.StringIO(response['body']['storage']['value']), config)
+                    io.StringIO(response['body']['storage']['value']), config,
+                    snippet_interfaces=[IConfluenceSnippet])
     
     def __str__(self):
         return "unicode file at location {}".format(self.url)
 mellonUnicodeFileFromURLItemAndConfigFactory = Factory(
                                 MellonUnicodeFileFromURLItemAndConfig)
+#interface.classImplements(MellonUnicodeFileFromURLItemAndConfig, IConfluenceMellonFile)
 
-
+@interface.implementer(IConfluenceMellonFile)
 class MellonByteFileFromConfluenceAttachment(
                             mellon.file.MellonByteFileFromFileStreamAndConfig):
     @classmethod
@@ -69,14 +73,16 @@ class MellonByteFileFromConfluenceAttachment(
         r.raise_for_status()
         MellonByteFileFromConfluenceAttachment.add_reader(r)
         self.url = url
-        super(MellonByteFileFromConfluenceAttachment, self).__init__(r, config)
+        super(MellonByteFileFromConfluenceAttachment, self).\
+                    __init__(r, config, snippet_interfaces=[IConfluenceSnippet])
     
     def __str__(self):
         return "byte file attachment at location {}".format(self.url)
 mellonByteFileFromConfluenceAttachmentFactory = Factory(
                                     MellonByteFileFromConfluenceAttachment)
+#interface.classImplements(MellonByteFileFromConfluenceAttachment, IConfluenceMellonFile)
 
-
+@interface.implementer(IConfluenceMellonFile)
 class MellonUnicodeFileFromConfluenceAttachment(
                             mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
     @classmethod
@@ -92,12 +98,14 @@ class MellonUnicodeFileFromConfluenceAttachment(
         r.raise_for_status()
         MellonUnicodeFileFromConfluenceAttachment.replace_line_iterator(r)
         self.url = url
-        super(MellonUnicodeFileFromConfluenceAttachment, self).__init__(r, config)
+        super(MellonUnicodeFileFromConfluenceAttachment, self).\
+                    __init__(r, config, snippet_interfaces=[IConfluenceSnippet])
     
     def __str__(self):
         return "unicode file attachment at location {}".format(self.url)
 mellonUnicodeFileFromConfluenceAttachmentFactory = Factory(
                                     MellonUnicodeFileFromConfluenceAttachment)
+#interface.classImplements(MellonUnicodeFileFromConfluenceAttachment, IConfluenceMellonFile)
 
 @interface.implementer(IMellonFileProvider)
 class TSMellonFileProviderFromConfluenceConfig(object):
@@ -151,6 +159,7 @@ class TSMellonFileProviderFromConfluenceConfig(object):
                 container.IPyContainerConfigValue(
                     self.config['ConfluenceSpaceContent']['ConfluenceConnection']).get(
                         'context', '')
+        return sec_context
     
     def add_job(self, job):
         self.count += 1
@@ -275,7 +284,6 @@ class TSMellonFileProviderFromConfluenceConfig(object):
         r = {'_links': {'base': self.api_base, 
                         'next': '/rest/api/content'+self.api_filter + \
                                 self.api_limit + self.api_expand}}
-        self.debug()
         with warnings.catch_warnings():
             if self.requester.gooble_warnings:
                 # TODO: limit this to only requests-related warnings
@@ -319,7 +327,7 @@ class TSMellonFileProviderFromConfluenceConfig(object):
             try:
                 while not self.mellon_files.empty():
                     f = self.mellon_files.get_nowait()
-                    self.sm.getUtility(IApplyAuthorizationContext)(self.security_context, f)
+                    component.getUtility(IApplyAuthorizationContext)(self.security_context, f)
                     yield f
             except Empty:
                 pass
