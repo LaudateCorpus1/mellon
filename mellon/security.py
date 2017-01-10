@@ -9,9 +9,9 @@ from .interfaces import IApplyAuthorizationContext, IAuthorizationContext, IMell
 @interface.provider(IAuthorizationContext)
 class AuthorizationContext(object):
     
-    def __init__(self, identity, description):
-        self.identity = identity
-        self.description = description
+    def __init__(self, **kwargs):
+        self.identity = kwargs['identity'] if 'identity' in kwargs else ''
+        self.description = kwargs['description'] if 'description' in kwargs else ''
     
     def __str__(self):
         return "context identity: {} with description: {}".format(self.identity, self.description)
