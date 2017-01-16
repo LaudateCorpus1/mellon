@@ -22,6 +22,6 @@ class WhitelistChecker(object):
         wht_lstd = False
         for wht_lst in component.subscribers((item,), IWhitelist):
             for wht_lst_info in wht_lst:
-                self.logger.debug(u"found white-list entry {} for item: {}".format(wht_lst_info, item))
+                logger.debug(u"found white-list entry {} for item: {}".format(wht_lst_info, item))
                 wht_lstd = True
         return True if wht_lstd else False
