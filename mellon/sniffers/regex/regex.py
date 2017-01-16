@@ -17,17 +17,17 @@ class RegExSecretSniffer(object):
         conf_regex = container.IPyContainerConfigValue(config).\
                                                     get('MellonRegexSniffer')
         
-        patterns = {'all': [], 'byte': [], 'unicode':[]} #list of dicts
+        patterns = {'all': [], 'byte': [], 'unicode':[], 'text':[] } #list of dicts
         for type_ in patterns.keys():
             if type_ in conf_regex['pattern_files']:
                 logger.debug(u"found pattern file {}, looking for regex patterns to load ...".format(conf_regex['pattern_files'][type_]))
                 with open(conf_regex['pattern_files'][type_]) as f:
-                    for pattern in f:
-                        types = [type_] if type_ in ('byte', 'unicode', ) else ['byte', 'unicode']
+                    for pattern in [p.strip() for p in f]:
+                        types = [type_] if type_ in ('byte', 'unicode', 'text', ) else ['byte', 'unicode', 'text']
                         for t in types:
                             logger.debug(u"loading pattern '{}' into {} Regex secret sniffer".format(pattern, t))
                             patterns[t].append({'pattern': pattern,
-                                                'prog':re.compile(pattern if t=='unicode' else bytes(pattern,'utf-8'))})
+                                                'prog':re.compile(pattern if t in ['unicode','text'] else bytes(pattern,'utf-8'))})
         return patterns
     patterns = None   
        
@@ -62,6 +62,16 @@ class ByteRegExSecretSniffer(RegExSecretSniffer):
 class UnicodeRegExSecretSniffer(RegExSecretSniffer):
     def __iter__(self):
         for entry in self.patterns['unicode']:
+            match = entry['prog'].search(self.context.data)
+            if match:
+                yield self.create_secret(entry['pattern'],match.group(0))
+
+@component.adapter(mellon.ITextSnippet)
+class TextRegExSecretSniffer(RegExSecretSniffer):
+    def __iter__(self):
+        #logger.debug(u"examining text contents for pattern matches: \n{}\n".format(self.context.data))
+        for entry in self.patterns['text']:
+            logger.debug(u"searching for matches on pattern {}".format(entry))
             match = entry['prog'].search(self.context.data)
             if match:
                 yield self.create_secret(entry['pattern'],match.group(0))
