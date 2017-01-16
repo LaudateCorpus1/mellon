@@ -7,7 +7,7 @@
     
     <utility
         provides=".ISecretJsonTransformer"
-        component=".json.DatedSecretJsonTransformer"
+        factory=".json.DatedSecretJsonTransformer"
         />
 
 </configure>
