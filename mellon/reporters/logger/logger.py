@@ -11,8 +11,8 @@ def logger_reporter_for_secret(event):
     snippet = secret.__parent__
     mfile = snippet.__parent__
     logging.warn(\
-                u"Found secret in file snippet.  Secret information: [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
-                .format(secret, snippet.__name__, mfile, mellon.IAuthorizationContext(snippet)))
+                u"Found secret in file snippet.  Secret information: [{}]. Secret unique identifier [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
+                .format(secret, hash(secret), snippet.__name__, mfile, mellon.IAuthorizationContext(snippet)))
 
 @interface.implementer(mellon.ISecret)
 class TestSecret(object):
