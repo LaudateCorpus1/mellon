@@ -29,7 +29,7 @@ class IMellonFileProviderFactory(component.IFactory):
                     initialization information needed by factory
         """
 
-#SNIPPETS
+#SNIPPETS BASES
 class ISnippet(location.ILocation):
     """A snippet of data to be sniffed for secrets
     
@@ -50,6 +50,10 @@ class ISnippetIterator(interface.Interface):
     """Iterates data snippets"""
     def __iter__():
         """Iterator of ISnippet objects"""
+
+#SNIPPET EXTENSIONS
+class ITextSnippet(IUnicodeSnippet):
+    """A snippet of human readable plain text (i.e. no html, xml, source-code, etc mark-up"""
 
 #FILES
 class IPath(interface.Interface):

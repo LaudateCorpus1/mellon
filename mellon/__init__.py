@@ -15,6 +15,7 @@ from .interfaces import ISecretSniffer
 from .interfaces import ISnippet
 from .interfaces import ISnippetAvailableForSecretsSniffEvent
 from .interfaces import ISnippetIterator
+from .interfaces import ITextSnippet
 from .interfaces import IUnicodeMellonFile
 from .interfaces import IUnicodeSnippet
 from .interfaces import IWhitelist
