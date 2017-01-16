@@ -4,12 +4,14 @@ from . import ISecret
 
 @interface.implementer(ISecret)
 class Secret(object):
-    def __init__(self, name, parent, hash_=None):
+    def __init__(self, name, parent):
         self.__name__ = name
         self.__parent__ = parent
-        self._hash = hash_ if hash_ else hash(name)
     def __str__(self):
         return self.__name__
     def __hash__(self):
-        return self._hash
+        """Based on Mellon file location string and secret string"""
+        snippet = self.__parent__
+        mfile = snippet.__parent__
+        return hash("{}{}".format(self, mfile))
 secretFactory = Factory(Secret)
