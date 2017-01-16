@@ -21,7 +21,7 @@ class RegExWhitelistMixin(object):
             if type_ in conf_regex['pattern_files']:
                 logger.debug(u"found pattern file {}, looking for regex patterns to load ...".format(conf_regex['pattern_files'][type_]))
                 with open(conf_regex['pattern_files'][type_]) as f:
-                    for pattern in f:
+                    for pattern in [p.strip() for p in f]:
                         types = [type_] if type_ in ('file', 'secret', ) else ['file', 'secret']
                         for t in types:
                             logger.debug(u"loading pattern '{}' into {} Regex white-list".format(pattern, t))
