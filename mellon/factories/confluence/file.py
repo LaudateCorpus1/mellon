@@ -15,6 +15,7 @@ from zope.component.factory import Factory
 from mellon import IApplyAuthorizationContext
 from mellon import IMellonFileProvider
 from mellon import IMellonFileProviderFactory
+from mellon import ITextSnippet
 import mellon.file
 from . import IConfluenceMellonFile
 from . import IConfluenceBytesSnippet
@@ -43,25 +44,73 @@ class MellonUnicodeFileFromURLItemAndConfig(
     def __init__(self, url, response, config):
         self.url = url 
         self.config = config
-        super(MellonUnicodeFileFromURLItemAndConfig, self).__init__(
-                    io.StringIO(response['body']['storage']['value']), config,
-                    snippet_interfaces=[IConfluenceUnicodeSnippet])
         self.strip_html = container.IPyContainerConfigValue(
                     self.config['ConfluenceSpaceContent']).get(
                                                         'StripHtmlTags', False)
+        ifaces = [IConfluenceUnicodeSnippet]
+        if self.strip_html:
+            ifaces.append(ITextSnippet)
+        soup = BeautifulSoup(response['body']['storage']['value'], 'html.parser')
+        text = soup.prettify() if not self.strip_html else soup.get_text()
+        #logger.debug("initialized new Mellon file from Confluence with content: \n\n{}\n\n".format(text))
+        super(MellonUnicodeFileFromURLItemAndConfig, self).__init__(
+                    io.StringIO(text), config,
+                    snippet_interfaces=ifaces)
     
     def __str__(self):
         return "unicode file at location {}".format(self.url)
     
-    def _process_line(self, line):
-        if not self.strip_html:
-            return line
-        soup = BeautifulSoup(line, 'html.parser')
-        return soup.get_text()
+#    def _process_line(self, line):
+#        if not self.strip_html:
+#            logger.debug("processing mellon file line: \n\t{}".format(line))
+#            return line
+#        soup = BeautifulSoup(line, 'html.parser')
+#        #logger.debug("processing mellon file line: \n\n\t{}\n\nto plain text:\n\n\t{}\n\n".format(line, soup.get_text()))
+#        return soup.get_text()
         
 mellonUnicodeFileFromURLItemAndConfigFactory = Factory(
                                 MellonUnicodeFileFromURLItemAndConfig)
 #interface.classImplements(MellonUnicodeFileFromURLItemAndConfig, IConfluenceMellonFile)
+
+@interface.implementer(IConfluenceMellonFile)
+class MellonUnicodeFileFromConfluenceAttachment(
+                            mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
+    @classmethod
+    def replace_line_iterator(cls, response):
+        """
+        Replace the default __iter__ method on a response object to iterate
+        line-by-line as opposed to default byte-based increments.
+        """
+        response.__iter__ = types.MethodType(Response.iter_lines, response)
+
+    def __init__(self, url, config, requester, req_kwargs):
+        self.config = config
+        r = requester.request('GET', url, stream=True, **req_kwargs)
+        r.raise_for_status()
+        MellonUnicodeFileFromConfluenceAttachment.replace_line_iterator(r)
+        self.url = url
+        self.strip_html = container.IPyContainerConfigValue(
+                    self.config['ConfluenceSpaceContent']).get(
+                                                        'StripHtmlTags', False)
+        ifaces = [IConfluenceUnicodeSnippet]
+        if self.strip_html:
+            ifaces.append(ITextSnippet)
+        super(MellonUnicodeFileFromConfluenceAttachment, self).\
+                    __init__(r, config, snippet_interfaces=ifaces)
+    
+    def __str__(self):
+        return "unicode file attachment at location {}".format(self.url)
+    
+    def _process_line(self, line):
+        if not self.strip_html:
+            #logger.debug("processing mellon file line: \n\t{}".format(line))
+            return line
+        soup = BeautifulSoup(line, 'html.parser')
+        #logger.debug("processing mellon file line: \n\n\t{}\n\nto plain text:\n\n\t{}\n\n".format(line, soup.get_text()))
+        return soup.get_text()
+mellonUnicodeFileFromConfluenceAttachmentFactory = Factory(
+                                    MellonUnicodeFileFromConfluenceAttachment)
+#interface.classImplements(MellonUnicodeFileFromConfluenceAttachment, IConfluenceMellonFile)
 
 @interface.implementer(IConfluenceMellonFile)
 class MellonByteFileFromConfluenceAttachment(
@@ -94,41 +143,6 @@ class MellonByteFileFromConfluenceAttachment(
 mellonByteFileFromConfluenceAttachmentFactory = Factory(
                                     MellonByteFileFromConfluenceAttachment)
 #interface.classImplements(MellonByteFileFromConfluenceAttachment, IConfluenceMellonFile)
-
-@interface.implementer(IConfluenceMellonFile)
-class MellonUnicodeFileFromConfluenceAttachment(
-                            mellon.file.MellonUnicodeFileFromFileStreamAndConfig):
-    @classmethod
-    def replace_line_iterator(cls, response):
-        """
-        Replace the default __iter__ method on a response object to iterate
-        line-by-line as opposed to default byte-based increments.
-        """
-        response.__iter__ = types.MethodType(Response.iter_lines, response)
-
-    def __init__(self, url, config, requester, req_kwargs):
-        self.config = config
-        r = requester.request('GET', url, stream=True, **req_kwargs)
-        r.raise_for_status()
-        MellonUnicodeFileFromConfluenceAttachment.replace_line_iterator(r)
-        self.url = url
-        self.strip_html = container.IPyContainerConfigValue(
-                    self.config['ConfluenceSpaceContent']).get(
-                                                        'StripHtmlTags', False)
-        super(MellonUnicodeFileFromConfluenceAttachment, self).\
-                    __init__(r, config, snippet_interfaces=[IConfluenceUnicodeSnippet])
-    
-    def __str__(self):
-        return "unicode file attachment at location {}".format(self.url)
-    
-    def _process_line(self, line):
-        if not self.strip_html:
-            return line
-        soup = BeautifulSoup(line, 'html.parser')
-        return soup.get_text()
-mellonUnicodeFileFromConfluenceAttachmentFactory = Factory(
-                                    MellonUnicodeFileFromConfluenceAttachment)
-#interface.classImplements(MellonUnicodeFileFromConfluenceAttachment, IConfluenceMellonFile)
 
 @interface.implementer(IMellonFileProvider)
 class TSMellonFileProviderFromConfluenceConfig(object):
