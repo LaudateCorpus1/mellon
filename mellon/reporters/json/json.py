@@ -52,13 +52,14 @@ class DatedSecretJsonTransformer(object):
 @component.adapter(mellon.ISecretDiscoveredEvent)
 def json_reporter_for_secret(event):
     config = component.getUtility(mellon.IMellonApplication).get_config()
-    json_dir = container.IPyContainerConfigValue(config['MellonJsonReporter']).get('directory') #raises KeyError if not available
+    MellonJsonReporter = container.IPyContainerConfigValue(config).get('MellonJsonReporter')
+    json_dir = container.IPyContainerConfigValue(MellonJsonReporter).get('directory') #raises KeyError if not available
     if len(json_dir) < 2:
         raise ValueError("for safety precaution, the MellonJsonReporter.directory config entry must be greater than 1 character long.")
     if not os.path.isdir(json_dir):
         raise EnvironmentError("expected configured MellonJsonReporter.directory to exist {}".format(json_dir))
-    secret_json = component.getUtility(ISecretJsonTransformer).transform(event.object, datetime.now())
-    file_name = uuid.uuid4() + '.json'
-    with open(os.path.join(json_dir, file_name)) as json_file:
+    secret_json = component.getUtility(ISecretJsonTransformer).transform(event.object)
+    file_name = uuid.uuid4().hex + '.json'
+    with open(os.path.join(json_dir, file_name), 'w+') as json_file:
         json_file.write(secret_json)
     
