@@ -107,8 +107,8 @@ class ISecret(location.ILocation):
     def __str__():
         """String details of the secret and/or how it was found"""
     
-    def __hash__():
-        """Uniquely identifies the locatable secret among other secrets"""
+    def get_id():
+        """String identifier that uniquely identifies the locatable secret among other secrets"""
 
 class IWhitelistInfo(interface.Interface):
     """Object whitelist information"""

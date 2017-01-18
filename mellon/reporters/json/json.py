@@ -39,7 +39,7 @@ class DatedSecretJsonTransformer(object):
         snippet = secret.__parent__
         mfile = snippet.__parent__
         json_dict = {
-                     'id': hash(secret),
+                     'id': secret.get_id(),
                      'details': str(secret),
                      'datetime': datetime.utcnow().isoformat(),
                      'snippet_data': snippet.data if mellon.IUnicodeSnippet.providedBy(snippet) else None,
