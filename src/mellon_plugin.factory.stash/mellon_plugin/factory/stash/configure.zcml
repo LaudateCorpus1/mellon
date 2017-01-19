@@ -1,0 +1,15 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_plugin.factory.stash">
+
+    <include package="sparc.git" />
+    <include package="mellon_plugin.factory.git" />
+
+    <utility
+        provides="zope.component.IFactory"
+    	component=".file.MellonFileProviderFromStashConfigFactory"
+    	name="mellon_plugin.factory.stash.file_provider_from_config"
+    	/>
+
+</configure>

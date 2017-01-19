@@ -1,0 +1,23 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_plugin.factory.git">
+
+    <utility
+        provides="zope.component.IFactory"
+    	component=".file.MellonFileProviderForGitReposBaseDirectoryFactory"
+    	name="mellon_plugin.factory.git.file_provider_from_git_repos_base_directory"
+    	/>
+
+    <utility
+    	component=".file.mellonByteFileFromGitRepoCommitPathAndConfigFactory"
+    	name="mellon_plugin.factory.git.byte_file_from_commit_path_and_config"
+    	/>
+
+    <utility
+    	component=".file.mellonUnicodeFileFromGitRepoCommitPathAndConfigFactory"
+    	name="mellon_plugin.factory.git.unicode_file_from_commit_path_and_config"
+    	/>
+
+
+</configure>
