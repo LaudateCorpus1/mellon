@@ -51,7 +51,6 @@ setup(name='mellon',
       tests_require=[
       ],
       entry_points={
-          'console_scripts':['mellon=mellon.mellon:main',
-                             'mellon-scrapy=mellon.factories.web_crawler.cmdline:main'],
+          'console_scripts':['mellon=mellon.mellon:main'],
           },
       )
