@@ -3,9 +3,9 @@ import os
 
 version = '0.0.1'
 
-setup(name='mellon_plugin.sniffer.entropy',
+setup(name='mellon_plugin.factory.web_crawler',
       version=version,
-      description="Mellon entropy calculation capable sniffer.",
+      description="Mellon file factory for web crawling.",
       long_description=open("README.md").read() + "\n" +
                        open("HISTORY.txt").read(),
       # Get more strings from
@@ -40,11 +40,14 @@ setup(name='mellon_plugin.sniffer.entropy',
           'zope.interface',
           'sparc.configuration',
           'sparc.logging',
-          'entropy'
+          'twisted',
+          'scrapy',
+          'zope.testrunner',
+          'sparc.testing'
       ],
       tests_require=[
       ],
       entry_points={
-          'console_scripts':['mellon-scrapy=mellon_plugin.factory.web_crawler.cmdline:main'],
+          'console_scripts':['mellon-scrapy=mellon.factories.web_crawler.cmdline:main'],
           },
       )
