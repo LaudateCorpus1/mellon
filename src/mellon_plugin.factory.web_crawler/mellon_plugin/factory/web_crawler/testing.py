@@ -38,9 +38,10 @@ class MellonWebCrawlerRuntimeLayer(MellonRuntimeLayerMixin):
     def setUp_config(self):
         self.config = self.config.copy() # not sure we need this, better safe than sorry
         #self.config['ZCMLConfiguration'].\
-        #    append({'package': 'mellon.factories.web_crawler'})
+        #    append({'package': 'mellon_plugin.factory.web_crawler'})
         self.config['ScrapySimpleTextWebsiteCrawler'] = \
             {'urls': ['http://localhost:{}/index.html'.format(self.http_port)]}
+        self.config['ZCMLConfiguration'].append({'package': 'mellon_plugin.factory.web_crawler'})
     
     def setUp(self):
         self.cwd = os.getcwd()
