@@ -60,7 +60,7 @@ target/
 
 # Buildout Directories and files
 bin/
-src/
+src_ext/
 .mr.developer.cfg
 
 # Apple
