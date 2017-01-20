@@ -48,6 +48,6 @@ setup(name='mellon_plugin.factory.web_crawler',
       tests_require=[
       ],
       entry_points={
-          'console_scripts':['mellon-scrapy=mellon.factories.web_crawler.cmdline:main'],
+          'console_scripts':['mellon-scrapy=mellon_plugin.factory.web_crawler.cmdline:main'],
           },
       )
