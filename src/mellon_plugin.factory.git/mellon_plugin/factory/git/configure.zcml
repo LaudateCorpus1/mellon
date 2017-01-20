@@ -3,6 +3,8 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon_plugin.factory.git">
 
+    <include package="sparc.git" />
+
     <utility
         provides="zope.component.IFactory"
     	component=".file.MellonFileProviderForGitReposBaseDirectoryFactory"
