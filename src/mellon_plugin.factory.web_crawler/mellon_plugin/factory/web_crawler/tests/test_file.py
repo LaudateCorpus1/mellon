@@ -21,7 +21,7 @@ class MellonScrapyFileProviderTestCase(unittest.TestCase):
 
 class test_suite(test_suite_mixin):
     layer = MELLON_FACTORY_EXECUTED_WEB_CRAWLER_LAYER
-    package = 'mellon.factories.web_crawler'
+    package = 'mellon_plugin.factory.web_crawler'
     module = 'file'
     
     def __new__(cls):
