@@ -53,7 +53,7 @@ def run_spiders():
     runner = CrawlerRunner()
     for name, spider in sm.getUtilitiesFor(IScrapySpider):
         pipeline_setting = {
-            'mellon.factories.web_crawler.web_crawler.pipelines.WebCrawlerQueuePipeline': 0}
+            'mellon_plugin.factory.web_crawler.web_crawler.pipelines.WebCrawlerQueuePipeline': 0}
         if spider.custom_settings and 'ITEM_PIPELINES' in spider.custom_settings:
             spider.custom_settings.update(pipeline_setting)
         else:
