@@ -5,7 +5,6 @@
 
     <include package="zope.annotation" />
     <include package="sparc.configuration" />
-    <include package="sparc.git" />
     
     <include package=".factories" />
 
