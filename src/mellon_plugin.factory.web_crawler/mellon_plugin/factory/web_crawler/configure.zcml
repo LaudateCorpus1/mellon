@@ -15,7 +15,7 @@
 
     <adapter
         provides="mellon.IBinaryChecker"
-        for="mellon.factories.web_crawler.IScrapyHttpResponse"
+        for="mellon_plugin.factory.web_crawler.IScrapyHttpResponse"
         factory=".binary.BinaryCheckerForScrapyHttpResponse"
         />
 
