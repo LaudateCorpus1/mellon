@@ -255,7 +255,7 @@ class TSMellonFileProviderFromConfluenceConfig(object):
             item: Dict JSON Confluence content item
         """
         if item['type'] == 'attachment':
-            bin_checker = component.createObject(u"mellon.factories.confluence.attachment_bin_checker", item)
+            bin_checker = component.createObject(u"mellon_plugin.factory.confluence.attachment_bin_checker", item)
             if bin_checker.check():
                 logger.debug('creating mellon byte file for attachment content {} with link {}'.format(item['id'], item['_links']['download']))
                 return MellonByteFileFromConfluenceAttachment(
