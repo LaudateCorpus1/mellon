@@ -18,25 +18,27 @@ class MellonSnifferRegExTestCase(unittest.TestCase):
     sm = component.getSiteManager()
     report = memory.report
     
-    def __init__(self, *args, **kwargs):
-        config = \
-            {'MellonFileProviderFactory':
-                {'name': 'mellon.factories.filesystem.file_provider_for_recursive_directory_config',
-                 'FileSystemDir':
-                    {'directory':os.path.join(base_path,'test_files')},
-                 'MellonSnippet':
-                    self.layer.config['MellonSnippet']
-                 },
-             
-             'MellonRegexSniffer':
-                {'pattern_files':
-                    {'all': os.path.join(base_path,'test_regex_patterns_all.cfg'),
-                     'byte':os.path.join(base_path,'test_regex_patterns_byte.cfg'),
-                     'unicode':os.path.join(base_path,'test_regex_patterns_unicode.cfg')
-                    }
+    #expose the config so others might use it as well
+    config = \
+        {'MellonFileProviderFactory':
+            {'name': 'mellon.factories.filesystem.file_provider_for_recursive_directory_config',
+             'FileSystemDir':
+                {'directory':os.path.join(base_path,'test_files')},
+             'MellonSnippet':
+                layer.config['MellonSnippet']
+             },
+         
+         'MellonRegexSniffer':
+            {'pattern_files':
+                {'all': os.path.join(base_path,'test_regex_patterns_all.cfg'),
+                 'byte':os.path.join(base_path,'test_regex_patterns_byte.cfg'),
+                 'unicode':os.path.join(base_path,'test_regex_patterns_unicode.cfg')
                 }
             }
-        self.layer.config.update(config)
+        }
+    
+    def __init__(self, *args, **kwargs):
+        self.layer.config.update(self.config)
         self.layer.config['ZCMLConfiguration'].append(
                                     {'package':'mellon.sniffers.regex'}
                                     )
