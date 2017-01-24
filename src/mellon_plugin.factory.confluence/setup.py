@@ -46,7 +46,5 @@ setup(name='mellon_plugin.factory.confluence',
       ],
       tests_require=[
       ],
-      entry_points={
-          'console_scripts':['mellon-scrapy=mellon_plugin.factory.web_crawler.cmdline:main'],
-          },
+      entry_points={},
       )
