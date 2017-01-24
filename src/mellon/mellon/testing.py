@@ -1,6 +1,6 @@
 from .mellon import create_and_register_app
 import mellon
-from .interfaces import IPath, IBinaryChecker
+from .interfaces import IPath, IBinaryChecker, IMellonApplication
 from sparc.testing.testlayer import SparcZCMLFileLayer
 from zope import component
 from zope.component.testlayer import LayerBase
@@ -33,8 +33,11 @@ class MellonRuntimeLayerMixin(LayerBase):
     verbose = False
     debug = False
     
+    def create_registered_app(self):
+        return create_and_register_app(self.config, self.verbose, self.debug)
+    
     def run_app(self):
-        app = create_and_register_app(self.config, self.verbose, self.debug)
+        app = self.create_registered_app()
         app.configure()
         app.go()
     
