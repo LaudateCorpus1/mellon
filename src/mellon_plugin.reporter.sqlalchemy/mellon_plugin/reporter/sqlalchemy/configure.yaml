@@ -1,0 +1,12 @@
+#SQLAlchemyEngine
+SQLAlchemyEngine:
+ dsn: http://your.confluence.server:your_api_port_number # may also be https
+ kwargs: #optional keyword arguments for sqlalchemy.create_engine()
+  arg1: value1
+  arg2: value2
+
+#SQLAlchemyReporter
+SQLAlchemyReporter:
+ SQLAlchemyEngine: *reference
+ table_name: table_name #optional table_name #name of table to report secrets into
+ utc_time: False #optionally record datetime as UTC, defaults to local tz
