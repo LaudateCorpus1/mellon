@@ -50,6 +50,8 @@ class Mellon(application.YamlCliAppMixin):
 
 def create_and_register_app(config, verbose=False, debug=False):
     app = Mellon(verbose=verbose,debug=debug)
+    app.verbose = verbose
+    app.debug = debug
     if not isinstance(config, dict) and not isinstance(config, list):
         yaml_doc = component.getUtility(\
                             yaml.ISparcYamlDocuments).first(config)

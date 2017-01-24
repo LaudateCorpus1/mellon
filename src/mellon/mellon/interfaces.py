@@ -14,6 +14,8 @@ class ISecretDiscoveredEvent(IObjectEvent):
 #APPLICATION & FACTORIES
 class IMellonApplication(ISparcPyContainerConfiguredApplication):
     """The Application"""
+    verbose = interface.Attribute("True indicates app should with verbose logging")
+    debug = interface.Attribute("True indicates app should with debug logging")
 
 class IMellonFileProvider(interface.Interface):
     """Provides IFile objects that should be processed by the application"""
