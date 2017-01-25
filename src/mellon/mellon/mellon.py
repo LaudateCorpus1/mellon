@@ -63,6 +63,21 @@ def create_and_register_app(config, verbose=False, debug=False):
     app.configure()
     return app
 
+def get_registered_app():
+    """Return a dict with app, config, and config value getter for currently 
+    registered mellon.IMellonApplication utility
+    
+    Return:
+        {'app':     mellon.IMellonApplication provider
+         'config':  sparc.configuration.container.ISparcAppPyContainerConfiguration provider
+         'vgetter': sparc.configuration.container.IPyContainerConfigValue provider
+        }
+    """
+    app = component.getUtility(mellon.IMellonApplication)
+    config = app.get_config()
+    vgetter = container.IPyContainerConfigValue(config)
+    return {'app':app,'config':config,'vgetter':vgetter}
+
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
     create_and_register_app(args.config_file, args.verbose, args.debug)
