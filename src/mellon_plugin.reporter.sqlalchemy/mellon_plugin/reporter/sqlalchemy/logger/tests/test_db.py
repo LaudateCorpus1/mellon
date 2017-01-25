@@ -11,10 +11,10 @@ from sqlalchemy import sql
 
 base_path = os.path.dirname(__file__)
 
-import mellon_plugin.reporter.sqlalchemy
+import mellon_plugin.reporter.sqlalchemy.logger
 class MellonSAReporterLayer(MellonRuntimeLayerMixin):
     pass
-MELLON_SA_REPORTER_RUNTIME_LAYER = MellonSAReporterLayer(mellon_plugin.reporter.sqlalchemy)
+MELLON_SA_REPORTER_RUNTIME_LAYER = MellonSAReporterLayer(mellon_plugin.reporter.sqlalchemy.logger)
 
 class MellonSAReporterTestCase(unittest.TestCase):
     layer = MELLON_SA_REPORTER_RUNTIME_LAYER
