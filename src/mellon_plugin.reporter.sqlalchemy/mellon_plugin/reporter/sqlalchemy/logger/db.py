@@ -31,17 +31,15 @@ def db_reporter_for_secret(event):
 class DBReporter(object):
 
     def __init__(self):
-        app = component.getUtility(mellon.IMellonApplication)
-        config_app = app.get_config()
-        config_reporter = container.IPyContainerConfigValue(config_app).get('SQLAlchemyReporter')
-        _dsn = config_reporter['SQLAlchemyEngine']['dsn']
-        _kwargs = config_reporter['SQLAlchemyEngine'].get('kwargs', {})
-        if app.debug:
+        m = mellon.mellon.get_registered_app()
+        _dsn = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','dsn')
+        _kwargs = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','kwargs', default={})
+        if m['app'].debug:
             _kwargs['echo'] = True
         self.engine = sqlalchemy.create_engine(_dsn, **_kwargs)
-        self.table_name = config_reporter['SQLAlchemyEngine'].get('table_name', 'secrets')
-        self.utc_time = config_reporter['SQLAlchemyEngine'].get('utc_time', False)
-        
+        self.table_name = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','table_name', default='secrets')
+        self.utc_time = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','utc_time', default=False)
+
         self.metadata = sqlalchemy.MetaData()
         self.tables = {
               'secrets': 

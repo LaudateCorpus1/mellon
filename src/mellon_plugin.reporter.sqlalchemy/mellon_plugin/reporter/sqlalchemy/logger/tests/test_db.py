@@ -26,9 +26,11 @@ class MellonSAReporterTestCase(unittest.TestCase):
         config = MellonSnifferRegExTestCase.config.copy()
         config.update(
                 {
-                 'SQLAlchemyReporter':
-                    {'SQLAlchemyEngine':
-                        {'dsn': 'sqlite:///:memory:'},
+                 'SQLAlchemyLoggerReporter':
+                    {'SQLAlchemyReporter':
+                        {'SQLAlchemyEngine':
+                            {'dsn': 'sqlite:///:memory:'},
+                         }
                      }
                 }
             )
