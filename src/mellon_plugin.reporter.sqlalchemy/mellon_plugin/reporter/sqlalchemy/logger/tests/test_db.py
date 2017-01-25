@@ -6,7 +6,7 @@ from sparc.testing.fixture import test_suite_mixin
 from mellon.testing import MellonRuntimeLayerMixin
 from mellon.reporters.memory import memory
 from mellon.sniffers.regex.tests.test_regex import MellonSnifferRegExTestCase
-from mellon_plugin.reporter.sqlalchemy import IDBReporter
+from mellon_plugin.reporter.sqlalchemy.logger import IDBReporter
 from sqlalchemy import sql
 
 base_path = os.path.dirname(__file__)
@@ -37,7 +37,7 @@ class MellonSAReporterTestCase(unittest.TestCase):
                         [
                              {'package':'mellon.sniffers.regex'},
                              {'package':'mellon.factories.filesystem'},
-                             {'package':'mellon_plugin.reporter.sqlalchemy'}
+                             {'package':'mellon_plugin.reporter.sqlalchemy.logger'}
                         ])
         self.layer.verbose = False
         self.layer.debug = False
@@ -71,7 +71,7 @@ class MellonSAReporterTestCase(unittest.TestCase):
 
 class test_suite(test_suite_mixin):
     layer = MELLON_SA_REPORTER_RUNTIME_LAYER
-    package = 'mellon_plugin.reporter.sqlalchemy'
+    package = 'mellon_plugin.reporter.sqlalchemy.logger'
     module = 'db'
     
     def __new__(cls):

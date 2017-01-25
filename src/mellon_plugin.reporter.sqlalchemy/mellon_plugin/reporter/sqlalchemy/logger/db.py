@@ -19,7 +19,7 @@ def db_reporter_for_secret(event):
     snippet = secret.__parent__
     mfile = snippet.__parent__
     if not reporter:
-        mellon_plugin.reporter.sqlalchemy.db.reporter = component.getUtility(IDBReporter)
+        mellon_plugin.reporter.sqlalchemy.logger.db.reporter = component.getUtility(IDBReporter)
         if not reporter.initialized():
             reporter.update_schema()
     reporter.report(secret)
