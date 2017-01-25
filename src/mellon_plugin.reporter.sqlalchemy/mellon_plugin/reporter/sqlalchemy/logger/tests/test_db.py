@@ -14,10 +14,10 @@ base_path = os.path.dirname(__file__)
 import mellon_plugin.reporter.sqlalchemy.logger
 class MellonSAReporterLayer(MellonRuntimeLayerMixin):
     pass
-MELLON_SA_REPORTER_RUNTIME_LAYER = MellonSAReporterLayer(mellon_plugin.reporter.sqlalchemy.logger)
+MELLON_SA_LOGGER_REPORTER_RUNTIME_LAYER = MellonSAReporterLayer(mellon_plugin.reporter.sqlalchemy.logger)
 
 class MellonSAReporterTestCase(unittest.TestCase):
-    layer = MELLON_SA_REPORTER_RUNTIME_LAYER
+    layer = MELLON_SA_LOGGER_REPORTER_RUNTIME_LAYER
     sm = component.getSiteManager()
     report = memory.report
     
@@ -70,7 +70,7 @@ class MellonSAReporterTestCase(unittest.TestCase):
         
 
 class test_suite(test_suite_mixin):
-    layer = MELLON_SA_REPORTER_RUNTIME_LAYER
+    layer = MELLON_SA_LOGGER_REPORTER_RUNTIME_LAYER
     package = 'mellon_plugin.reporter.sqlalchemy.logger'
     module = 'db'
     
