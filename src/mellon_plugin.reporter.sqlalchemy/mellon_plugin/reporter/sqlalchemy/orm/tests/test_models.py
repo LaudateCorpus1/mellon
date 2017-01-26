@@ -2,63 +2,49 @@ import os.path
 import unittest
 import zope.testrunner
 from sparc.testing.fixture import test_suite_mixin
-from mellon.testing import MELLON_INTEGRATION_LAYER
-import sqlalchemy
-from sqlalchemy import event
 from sqlalchemy import exc
-from sqlalchemy import orm
 from sqlalchemy.engine import reflection
 from .. import models, interfaces
 
+from ..testing import MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
 
 class MellonORMReporterTestCase(unittest.TestCase):
-    layer = MELLON_INTEGRATION_LAYER
+    layer = MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
     
-    def setUp(self, *args, **kwargs):
-        #http://stackoverflow.com/questions/2614984/sqlite-sqlalchemy-how-to-enforce-foreign-keys
-        def _fk_pragma_on_connect(dbapi_con, con_record):
-            dbapi_con.execute('pragma foreign_keys=ON')
-        
-        self.engine = sqlalchemy.create_engine('sqlite:///:memory:', echo=False)
-        event.listen(self.engine, 'connect', _fk_pragma_on_connect)
-        models.Base.metadata.create_all(self.engine)
-        Session = orm.sessionmaker(bind=self.engine)
-        self.session = Session()
-
     def test_schema(self):
-        insp = reflection.Inspector.from_engine(self.engine)
+        insp = reflection.Inspector.from_engine(self.layer.engine)
         self.assertTrue(models.AuthorizationContext.__tablename__ in insp.get_table_names())
     
     def test_models(self):
         auth_context1 = models.AuthorizationContext(id='auth_id1', name='auth_name1')
-        self.session.add(auth_context1)
-        self.session.commit()
+        self.layer.session.add(auth_context1)
+        self.layer.session.commit()
         
         mfile1 = models.MellonFile(name='mfile1') #foreign key fail
-        self.session.add(mfile1)
+        self.layer.session.add(mfile1)
         with self.assertRaises(exc.IntegrityError):
-            self.session.commit()
-        self.session.rollback()
+            self.layer.session.commit()
+        self.layer.session.rollback()
         
         auth_context1.mellon_files = [models.MellonFile(name='mfile2'), models.MellonFile(name='mfile3')]
-        self.session.add(auth_context1)
-        self.session.commit()
-        self.assertEquals(len(self.session.dirty), 0)
+        self.layer.session.add(auth_context1)
+        self.layer.session.commit()
+        self.assertEquals(len(self.layer.session.dirty), 0)
         
-        contexts = self.session.query(models.AuthorizationContext).all()
+        contexts = self.layer.session.query(models.AuthorizationContext).all()
         self.assertEquals(contexts[0].id, 'auth_id1')
         
         #quick test to insure retrieved models provide the correct interface
         self.assertTrue(interfaces.IORMAuthorizationContext.providedBy(contexts[0]))
         
-        mfiles = self.session.query(models.MellonFile).order_by(models.MellonFile.name).all()
+        mfiles = self.layer.session.query(models.MellonFile).order_by(models.MellonFile.name).all()
         self.assertEquals(mfiles[0].name, 'mfile2')
     
     def test_model_factory(self):
         pass
 
 class test_suite(test_suite_mixin):
-    layer = MELLON_INTEGRATION_LAYER
+    layer = MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
     package = 'mellon_plugin.reporter.sqlalchemy.orm'
     module = 'models'
     
