@@ -1,4 +1,5 @@
-from .mellon import create_and_register_app
+from .mellon import create_and_register_app, get_registered_app
+from .interfaces import IMellonApplication
 import mellon
 from .interfaces import IPath, IBinaryChecker, IMellonApplication
 from sparc.testing.testlayer import SparcZCMLFileLayer
@@ -46,6 +47,8 @@ class MellonRuntimeLayerMixin(LayerBase):
         self.working_dir = tempfile.mkdtemp()
     
     def tearDown(self):
+        sm = component.getGlobalSiteManager()
+        sm.unregisterUtility(component=get_registered_app()['app'], provided=IMellonApplication)
         if len(self.working_dir) < 3:
             print('ERROR: working directory less than 3 chars long, unable to clean up: %s' % str(self.working_dir))
             return
