@@ -15,5 +15,5 @@ def reset_report():
 @component.adapter(mellon.ISecretDiscoveredEvent)
 def memory_reporter_for_secret(event):
     global report
-    logging.debug('appending secret to module-level report list')
+    logger.debug('appending secret to module-level report list')
     report.append(event.object)

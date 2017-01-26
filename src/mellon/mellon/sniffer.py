@@ -14,7 +14,7 @@ def global_secret_sniffer_processor(event):
             if component.getUtility(IWhitelistChecker).check(secret):
                 logger.info(u"skipping white-listed secret: {}".format(secret))
                 continue
-            logging.debug(\
+            logger.debug(\
                 u"Found secret in file snippet.  Notifying event.  Secret information: [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
                 .format(secret, event.object.__name__, event.object.__parent__, IAuthorizationContext(event.object)))
             zope.event.notify(SecretDiscoveredEvent(secret))
