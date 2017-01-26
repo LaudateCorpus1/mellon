@@ -4,26 +4,20 @@ from sqlalchemy.engine import reflection
 from zope import component
 from zope import interface
 import mellon
-from sparc.configuration import container
 from .interfaces import IDBReporter
 
 from sparc.logging import logging
-import mellon_plugin
 logger = logging.getLogger(__name__)
 
-reporter = None #module-level holder for initialized IDBReporter singleton
 
 @component.adapter(mellon.ISecretDiscoveredEvent)
 def db_reporter_for_secret(event):
     secret = event.object
     snippet = secret.__parent__
     mfile = snippet.__parent__
-    if not reporter:
-        mellon_plugin.reporter.sqlalchemy.logger.db.reporter = component.getUtility(IDBReporter)
-        if not reporter.initialized():
-            reporter.update_schema()
+    reporter = component.getUtility(IDBReporter)
     reporter.report(secret)
-    logging.debug(\
+    logger.debug(\
                 u"Found secret in file snippet.  Secret information: [{}]. Secret unique identifier [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
                 .format(secret, secret.get_id(), snippet.__name__, mfile, mellon.IAuthorizationContext(snippet)))
 
@@ -54,6 +48,10 @@ class DBReporter(object):
                         sqlalchemy.Column('auth_context_info', sqlalchemy.Text, nullable=False)
                     )
               }
+        
+        if not self.initialized():
+            logger.debug(u"Initializing sqlalchemy schema for logging")
+            self.update_schema()
 
     
     def update_schema(self):
