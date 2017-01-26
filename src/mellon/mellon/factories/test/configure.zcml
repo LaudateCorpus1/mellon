@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon.factories.test">
+
+    <utility
+        provides="zope.component.IFactory"
+    	component=".file.mellonFileProviderForTestingFactory"
+    	name="mellon.factories.test.file_provider_for_testing"
+    	/>
+
+</configure>
