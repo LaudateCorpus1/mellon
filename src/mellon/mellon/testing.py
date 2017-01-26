@@ -9,6 +9,7 @@ starting layers:
 from .mellon import create_and_register_app, get_registered_app
 from .interfaces import IMellonApplication
 from .reporters.memory.memory import reset_report
+from .sniffers.test.test import reset_test_sniffer
 import mellon
 from .interfaces import IPath, IBinaryChecker, IMellonApplication
 from sparc.testing.testlayer import SparcZCMLFileLayer
@@ -21,21 +22,6 @@ from zope import interface
 MELLON_INTEGRATION_LAYER = SparcZCMLFileLayer(mellon)
 
 # A layer with a registered and configured, but unexecuted, Mellon application
-"""
-config_base = {'MellonSnippet':
-                    {'lines_coverage': 2,
-                     'lines_increment': 1,
-                     'bytes_read_size': 8,
-                     'bytes_coverage': 4,
-                     'bytes_increment': 3
-                     },
-                  'ZCMLConfiguration':
-                    [{'package': 'mellon.reporters.memory'},
-                     {'package': 'mellon',
-                      'file': 'ftesting-bin_check-override.zcml'}
-                     ]
-                  }
-"""
 class MellonApplicationRuntimeLayer(ZCMLLayerBase):
     """
     Provides a configured and registered IMellonApplication layer (but 
@@ -77,7 +63,8 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
         self.app.configure()
 
     def tearDown(self):
-        reset_report() #added for convienence only...extenders would still need to register the memory reporter zcml
+        reset_report() #added for convenience only...extender's would still need to register the memory reporter zcml
+        reset_test_sniffer() #same
         """
         I don't think we need this because ZCMLLayerBase is our parent...it should
         be able to reset the component registry appropriately
@@ -94,41 +81,17 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
         
 MELLON_RUNTIME_LAYER = MellonApplicationRuntimeLayer(mellon)
     
-# A layer with an executed Mellon application
+# A layer with an executed Mellon application.  This isn't of much use, except
+# to show an example on how to create a layer with an executed Mellon app.
 class MellonApplicationExecutedLayer(MellonApplicationRuntimeLayer):
     """
     Provides environment for post-executed Mellon application.
     """
     def setUp(self):
         super(MellonApplicationExecutedLayer, self).setUp()
-        component.getUtility(IMellonApplication).go()
+        self.app.go()
         
 MELLON_EXECUTED_LAYER = MellonApplicationExecutedLayer(mellon)
-
-"""
-A Sample runtime app test case...
-
-import your.package
-from mellon.testing import MellonRuntimeLayerMixin
-class MellonRuntimeLayerExample(MellonRuntimeLayerMixin):
-    # Allow registry setup/teardown at test case level
-    pass
-EXAMPLE_RUNTIME_LAYER = MellonRuntimeLayerExample(your.package)
-
-import unittest
-from mellon.reporters.memory import memory
-class MellonRuntimeTestExample(unittest.TestCase):
-    layer = EXAMPLE_RUNTIME_LAYER
-    report = memory.report
-    
-    def tearDown(self):
-        memory.reset_report()
-
-    def test_example(self):
-        self.layer.config = {'ExampleConfigEntry': None}
-        self.layer.run_app()
-        self.assertEquals(self.report[0], 'Some ISecret string')
-"""
         
 @interface.implementer(IBinaryChecker)
 @component.adapter(IPath)
