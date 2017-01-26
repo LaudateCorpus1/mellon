@@ -6,7 +6,7 @@ from mellon_plugin.factory.web_crawler import tests
 from mellon_plugin.factory.web_crawler.web_crawler.pipelines import WebCrawlerPipelineItems
 from mellon_plugin.factory.web_crawler.file import run_spiders
 from mellon_plugin.factory.web_crawler.file import mellonFileProviderForAllRegisteredScrapySpidersFactory
-from mellon.testing import MellonRuntimeLayerMixin
+from mellon.testing import MellonApplicationRuntimeLayer
 
 try:
     import SocketServer as socketserver
@@ -17,7 +17,7 @@ except ImportError:
     import http.server as http_server
     from queue import Empty
 
-class MellonWebCrawlerRuntimeLayer(MellonRuntimeLayerMixin):
+class MellonWebCrawlerRuntimeLayer(MellonApplicationRuntimeLayer):
     """
     Provides a runtime httpd server that publishes the web_crawler.tests:httpd_root 
     directory via Pythons SimpleHTTPRequestHandler module
@@ -35,25 +35,31 @@ class MellonWebCrawlerRuntimeLayer(MellonRuntimeLayerMixin):
         self.httpd_server.shutdown()
         self.httpd_server.server_close()
     
-    def setUp_config(self):
-        self.config = self.config.copy() # not sure we need this, better safe than sorry
-        #self.config['ZCMLConfiguration'].\
-        #    append({'package': 'mellon_plugin.factory.web_crawler'})
-        self.config['ScrapySimpleTextWebsiteCrawler'] = \
-            {'urls': ['http://localhost:{}/index.html'.format(self.http_port)]}
-        self.config['ZCMLConfiguration'].append({'package': 'mellon_plugin.factory.web_crawler'})
-    
     def setUp(self):
+        self.config = {'MellonSnippet':
+                          {
+                           'lines_coverage': 2,
+                           'lines_increment': 1,
+                           'bytes_read_size': 8,
+                           'bytes_coverage': 4,
+                           'bytes_increment': 3
+                           },
+                       'ScrapySimpleTextWebsiteCrawler':
+                           {
+                            'urls': ['http://localhost:{}/index.html'.format(self.http_port)]
+                           },
+                        'ZCMLConfiguration':
+                            [{'package':'mellon_plugin.factory.web_crawler'}]
+                      }
         self.cwd = os.getcwd()
         os.chdir(os.path.join(os.path.dirname(tests.__file__), 'httpd_root'))
         self.start_http_server() # non-blocking (starts httpd server in a thread)
-        self.setUp_config()
-        MellonRuntimeLayerMixin.setUp(self)
+        super(MellonWebCrawlerRuntimeLayer, self).setUp()
     
     def tearDown(self):
         self.shutdown_http_server()
         os.chdir(self.cwd)
-        return MellonRuntimeLayerMixin.tearDown(self)
+        super(MellonWebCrawlerRuntimeLayer, self).tearDown()
     
 MELLON_FACTORY_WEB_CRAWLER_LAYER = MellonWebCrawlerRuntimeLayer(mellon)
 
@@ -65,7 +71,6 @@ class MellonWebCrawlerExecutedRuntimeLayer(MellonWebCrawlerRuntimeLayer):
     cases
     """
     
-    class_is_setup = False # turns true when setUp is run
     item_queue = [] # keep list of web_crawler item queue for testing reference
     mellon_files = [] # keep list of Mellon files for testing reference
     
@@ -85,19 +90,18 @@ class MellonWebCrawlerExecutedRuntimeLayer(MellonWebCrawlerRuntimeLayer):
                 return f
 
     def setUp(self):
-        if not MellonWebCrawlerExecutedRuntimeLayer.class_is_setup:
-            MellonWebCrawlerRuntimeLayer.setUp(self)
-            app = create_and_register_app(self.config, self.verbose, self.debug)
-            run_spiders() #will fill up the web_crawler item queue
-            try:
-                while True:
-                    item = WebCrawlerPipelineItems.get_nowait()
-                    MellonWebCrawlerExecutedRuntimeLayer.item_queue.append(item)
-            except Empty:
-                self._repopulate_pipeline_queue()
-            
-            mfp = mellonFileProviderForAllRegisteredScrapySpidersFactory(app.get_config())
-            MellonWebCrawlerExecutedRuntimeLayer.mellon_files = [f for f in mfp]
-            MellonWebCrawlerExecutedRuntimeLayer.class_is_setup = True
+        MellonWebCrawlerRuntimeLayer.setUp(self)
+        app = create_and_register_app(self.config, self.verbose, self.debug)
+        run_spiders() #will fill up the web_crawler item queue
+        try:
+            while True:
+                item = WebCrawlerPipelineItems.get_nowait()
+                MellonWebCrawlerExecutedRuntimeLayer.item_queue.append(item)
+        except Empty:
+            self._repopulate_pipeline_queue()
+        
+        mfp = mellonFileProviderForAllRegisteredScrapySpidersFactory(app.get_config())
+        MellonWebCrawlerExecutedRuntimeLayer.mellon_files = [f for f in mfp]
+        MellonWebCrawlerExecutedRuntimeLayer.class_is_setup = True
     
 MELLON_FACTORY_EXECUTED_WEB_CRAWLER_LAYER = MellonWebCrawlerExecutedRuntimeLayer(mellon)
