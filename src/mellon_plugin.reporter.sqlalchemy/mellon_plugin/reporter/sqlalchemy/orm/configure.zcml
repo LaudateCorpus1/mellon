@@ -4,5 +4,10 @@
     i18n_domain="mellon_plugin.reporter.sqlalchemy">
 
     <subscriber handler=".db.orm_reporter_for_secret" />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.model"
+        component=".models.ormModelFromMellonProviderFactory"
+        />
 
 </configure>
