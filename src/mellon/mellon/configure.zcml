@@ -5,8 +5,6 @@
 
     <include package="zope.annotation" />
     <include package="sparc.configuration" />
-    
-    <include package=".factories" />
 
     <subscriber handler=".sniffer.global_secret_sniffer_processor" />
     

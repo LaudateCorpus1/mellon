@@ -1,59 +1,109 @@
+"""
+We provide some sane starting points for Mellon test layers.  We have 3
+starting layers:
+ - A basic layer that loads the Mellon file based ZCML components
+ - A Runtime layer that registers the Mellon application and configures it
+ - An executed layer that runs the mellon application.
+"""
+
 from .mellon import create_and_register_app, get_registered_app
 from .interfaces import IMellonApplication
+from .reporters.memory.memory import reset_report
 import mellon
 from .interfaces import IPath, IBinaryChecker, IMellonApplication
 from sparc.testing.testlayer import SparcZCMLFileLayer
 from zope import component
-from zope.component.testlayer import LayerBase
+from zope.component.testlayer import ZCMLLayerBase
 from zope import interface
-import shutil
-import tempfile
 
+# A basic layer with Mellon ZCML components registered (does not include the
+# mellon.IMellonApplication runtime component)
 MELLON_INTEGRATION_LAYER = SparcZCMLFileLayer(mellon)
 
-
-class MellonRuntimeLayerMixin(LayerBase):
+# A layer with a registered and configured, but unexecuted, Mellon application
+"""
+config_base = {'MellonSnippet':
+                    {'lines_coverage': 2,
+                     'lines_increment': 1,
+                     'bytes_read_size': 8,
+                     'bytes_coverage': 4,
+                     'bytes_increment': 3
+                     },
+                  'ZCMLConfiguration':
+                    [{'package': 'mellon.reporters.memory'},
+                     {'package': 'mellon',
+                      'file': 'ftesting-bin_check-override.zcml'}
+                     ]
+                  }
+"""
+class MellonApplicationRuntimeLayer(ZCMLLayerBase):
     """
-    Provides base components to enable installation of a Mellon runtime
-    environment.
-    """
+    Provides a configured and registered IMellonApplication layer (but 
+    not executed).
     
-    config = {'MellonSnippet':
-                {'lines_coverage': 2,
-                 'lines_increment': 1,
-                 'bytes_read_size': 8,
-                 'bytes_coverage': 4,
-                 'bytes_increment': 3
-                 },
-              'ZCMLConfiguration':
-                [{'package': 'mellon.reporters.memory'},
-                 {'package': 'mellon',
-                  'file': 'ftesting-bin_check-override.zcml'}
-                 ]
-              }
+    Most use-cases will want to extend this class, in doing so, have the 
+    ability to update the runtime config.  Extenders can simply define their
+    own class-level config property.
+    
+    A sample extension layer might look like this:
+    import your.package
+    class YourRuntimeLayer(MellonApplicationRuntimeLayer):
+        
+        def setUp(self):
+            self.config = \
+                {
+                'ZCMLConfiguration': [{'package': 'your.plugin.package'},
+                                      {'package': 'mellon.reporters.memory'},
+                                      {'package': 'mellon', 'file': 'ftesting-bin_check-override.zcml'}
+                                     ],
+                'YourYamlEntry': 'some plugin yaml value'
+                }
+            super(YourRuntimeLayer, self).setUp() #should be called after config is defined
+            
+    YOUR_LAYER = YourRuntimeLayer(your.package)
+    
+    The above layer would make your plugin available along side a memory
+    reporter (nice for easy testing purposes).  In addition, a file binary
+    checker that only looks at file extensions is loaded (again, makes testing
+    a little more sane).
+    """
     verbose = False
     debug = False
-    
-    def create_registered_app(self):
-        return create_and_register_app(self.config, self.verbose, self.debug)
-    
-    def run_app(self):
-        app = self.create_registered_app()
-        app.configure()
-        app.go()
+    config = {}
     
     def setUp(self):
-        super(MellonRuntimeLayerMixin, self).setUp()
-        self.working_dir = tempfile.mkdtemp()
-    
+        super(MellonApplicationRuntimeLayer, self).setUp()
+        self.app = create_and_register_app(self.config, self.verbose, self.debug)
+        self.app.configure()
+
     def tearDown(self):
+        reset_report() #added for convienence only...extenders would still need to register the memory reporter zcml
+        """
+        I don't think we need this because ZCMLLayerBase is our parent...it should
+        be able to reset the component registry appropriately
         sm = component.getGlobalSiteManager()
-        sm.unregisterUtility(component=get_registered_app()['app'], provided=IMellonApplication)
-        if len(self.working_dir) < 3:
-            print('ERROR: working directory less than 3 chars long, unable to clean up: %s' % str(self.working_dir))
-            return
-        shutil.rmtree(self.working_dir)
-        super(MellonRuntimeLayerMixin, self).tearDown()
+        app = sm.getUtility(IMellonApplication)
+        sm.unregisterUtility(component=app, provided=IMellonApplication)
+        """
+        super(MellonApplicationRuntimeLayer, self).tearDown()
+    
+    def _load_zcml(self, context):
+        """Since the Mellon app does this for us, we need to pass
+        """
+        pass
+        
+MELLON_RUNTIME_LAYER = MellonApplicationRuntimeLayer(mellon)
+    
+# A layer with an executed Mellon application
+class MellonApplicationExecutedLayer(MellonApplicationRuntimeLayer):
+    """
+    Provides environment for post-executed Mellon application.
+    """
+    def setUp(self):
+        super(MellonApplicationExecutedLayer, self).setUp()
+        component.getUtility(IMellonApplication).go()
+        
+MELLON_EXECUTED_LAYER = MellonApplicationExecutedLayer(mellon)
 
 """
 A Sample runtime app test case...

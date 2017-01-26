@@ -48,7 +48,7 @@ class Mellon(application.YamlCliAppMixin):
                 traceback.print_exc()
         self.logger.info(u"completed MellonFileProviderFactory config file entry search")
 
-def create_and_register_app(config, verbose=False, debug=False):
+def create_app(config, verbose=False, debug=False):
     app = Mellon(verbose=verbose,debug=debug)
     app.verbose = verbose
     app.debug = debug
@@ -58,9 +58,12 @@ def create_and_register_app(config, verbose=False, debug=False):
         config = component.createObject(\
                                     u'sparc.configuration.container', yaml_doc)
     app.set_config(config)
+    return app
+    
+def create_and_register_app(config, verbose=False, debug=False):
+    app = create_app(config, verbose, debug)
     sm = component.getSiteManager()
     sm.registerUtility(app, mellon.IMellonApplication) #give components access to app config
-    app.configure()
     return app
 
 def get_registered_app():
@@ -81,7 +84,9 @@ def get_registered_app():
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
     create_and_register_app(args.config_file, args.verbose, args.debug)
-    component.getUtility(mellon.IMellonApplication).go() #test registration and go
+    app = component.getUtility(mellon.IMellonApplication) #test registration and go
+    app.configure() #process yaml-based zcml includes
+    app.go() 
 
 if __name__ == '__main__':
     main()

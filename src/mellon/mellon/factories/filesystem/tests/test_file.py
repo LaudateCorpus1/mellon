@@ -13,13 +13,12 @@ from sparc.configuration import yaml
 
 
 class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
-    layer = MELLON_FACTORIES_FILESYSTEM_LAYER
-    sm = component.getSiteManager()
+    layer = MELLON_FACTORIES_FILESYSTEM_RUNTIME_LAYER
 
     def test_recursive_dir(self):
         mf_provider = component.createObject(\
             u'mellon.factories.filesystem.file_provider_for_recursive_directory_config',
-            self.layer.config)
+            self.layer.app.get_config())
         #import pdb;pdb.set_trace()
         mf_files = list(mf_provider)
         self.assertEquals(len(mf_files), 8)
@@ -29,7 +28,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_unicode = component.createObject(
                             u'mellon.factories.filesystem.unicode_file',
                             os.path.join(self.layer.working_dir, 'small.txt'),
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_unicode]
         self.assertEquals(len(snippets), 1)
         self.assertEquals(snippets[0].data, u'1\n2\n3\n4\n')
@@ -40,7 +39,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_binary = component.createObject(
                             u'mellon.factories.filesystem.byte_file',
                             path,
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_binary]
         self.assertEquals(len(snippets), 1)
         self.assertEquals(snippets[0].data, contents)
@@ -50,7 +49,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_unicode = component.createObject(
                             u'mellon.factories.filesystem.unicode_file',
                             os.path.join(self.layer.working_dir,'1','a','exact.txt'),
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_unicode]
         self.assertEquals(len(snippets), 1)
         self.assertEquals(snippets[0].data[0:1], u'1')
@@ -62,7 +61,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_binary = component.createObject(
                             u'mellon.factories.filesystem.byte_file',
                             path,
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_binary]
         self.assertEquals(len(snippets), 1)
         self.assertEquals(snippets[0].data, contents)
@@ -75,7 +74,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_unicode = component.createObject(
                             u'mellon.factories.filesystem.unicode_file',
                             path,
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_unicode]
         self.assertEquals(len(snippets), 3) # remember we'll be re-reading data each snippet
         # test first snippet
@@ -110,7 +109,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_unicode = component.createObject(
                             u'mellon.factories.filesystem.byte_file',
                             path,
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_unicode]
         self.assertEquals(len(snippets), 2) 
         self.assertEquals(len(snippets[0].data), DEFAULT_read_size*DEFAULT_snippet_bytes_coverage) 
@@ -129,7 +128,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf_unicode = component.createObject(
                             u'mellon.factories.filesystem.unicode_file',
                             path,
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf_unicode]
         self.assertEquals(len(snippets), 511)
         
@@ -168,7 +167,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
         mf = component.createObject(
                             u'mellon.factories.filesystem.byte_file',
                             path,
-                            self.layer.config)
+                            self.layer.app.get_config())
         snippets = [s for s in mf]
         self.assertEquals(len(snippets), 3) 
         self.assertEquals(len(snippets[0].data), DEFAULT_read_size*DEFAULT_snippet_bytes_coverage) 
@@ -188,7 +187,7 @@ class MellonFactoryFilesystemFileTestCase(unittest.TestCase):
 
 
 class test_suite(test_suite_mixin):
-    layer = MELLON_FACTORIES_FILESYSTEM_LAYER
+    layer = MELLON_FACTORIES_FILESYSTEM_RUNTIME_LAYER
     package = 'mellon.factories.filesystem'
     module = 'file'
     
