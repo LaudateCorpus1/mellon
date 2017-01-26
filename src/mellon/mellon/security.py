@@ -6,7 +6,7 @@ from zope.component.factory import Factory
 from .interfaces import IApplyAuthorizationContext, IAuthorizationContext, IMellonFile, ISnippet
 
 
-@interface.provider(IAuthorizationContext)
+@interface.implementer(IAuthorizationContext)
 class AuthorizationContext(object):
     
     def __init__(self, **kwargs):
@@ -17,7 +17,7 @@ class AuthorizationContext(object):
         return "context identity: {} with description: {}".format(self.identity, self.description)
 authorizationContextFactory = Factory(AuthorizationContext)
 
-@interface.provider(IAuthorizationContext)
+@interface.implementer(IAuthorizationContext)
 @component.adapter(IMellonFile)
 class AuthorizationContextForMellonFile(object):
     
@@ -47,13 +47,13 @@ class AuthorizationContextForMellonFile(object):
     def __str__(self):
         return "context identity: {} with description: {}".format(self.identity, self.description)
 
-@interface.provider(IAuthorizationContext)
+@interface.implementer(IAuthorizationContext)
 @component.adapter(ISnippet)
 class AuthorizationContextForSnippet():
     def __new__(cls, context):
         return AuthorizationContextForMellonFile(context.__parent__)
 
-@interface.provider(IApplyAuthorizationContext)
+@interface.implementer(IApplyAuthorizationContext)
 class ApplyAuthorizationContext(object):
     def __call__(self, context, item):
         item_sec_context = IAuthorizationContext(item)
