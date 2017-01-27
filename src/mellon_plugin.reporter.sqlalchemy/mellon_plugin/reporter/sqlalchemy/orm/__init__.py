@@ -10,4 +10,3 @@ from .interfaces import ISAModel
 from .interfaces import ISASecret
 from .interfaces import ISASecretDiscoveryDate
 from .interfaces import ISASnippet
-from .interfaces import ISecretDiscoveryDates

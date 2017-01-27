@@ -51,12 +51,3 @@ class IORMSecretDiscoveryDate(IORMModel):
     
 class ISASecretDiscoveryDate(ISAModel, IORMSecretDiscoveryDate):
     """A SA ORM secret discovery date"""
-
-class ISecretDiscoveryDates(interface.Interface):
-    """Easy access to datetime information related to mellon.ISecret discoveries"""
-    def all():
-        """Iterator of ISASecretDiscoveryDate providers ordered from earliest"""
-    def first():
-        """Return oldest available ISASecretDiscoveryDate"""
-    def last():
-        """Return youngest available ISASecretDiscoveryDate"""

@@ -1,3 +1,4 @@
+from datetime import datetime
 from zope import component
 import sqlalchemy
 from sqlalchemy import orm
@@ -35,24 +36,51 @@ def get_session():
 
 @component.adapter(mellon.ISecretDiscoveredEvent)
 def orm_reporter_for_secret(event):
+    m = mellon.mellon.get_registered_app()
+    now = datetime.now()
+    if m['vgetter'].get('SQLAlchemyORMReporter', 'SQLAlchemyReporter', 
+                                                    'utc_time', default=False):
+        now = datetime.utcnow()
+    session = get_session()
+    #Create the ORM models, relationships, and merge them to session
     secret = event.object
     snippet = secret.__parent__
     mfile = snippet.__parent__
-    session = get_session()
+    auth_context =  mellon.IAuthorizationContext(mfile)
+    #AuthorizationContext & MellonFile
+    auth_context_model = None
+    if auth_context.identity:
+        auth_context_model = component.createObject(\
+                    u"mellon_plugin.reporter.sqlalchemy.orm.model", 
+                    mellon.IAuthorizationContext(mfile))
+        session.add(auth_context_model)
+    mfile_model = component.createObject(\
+                    u"mellon_plugin.reporter.sqlalchemy.orm.model", mfile)
+    if auth_context_model:
+        auth_context_model.mellon_files = [mfile_model]
+    session.add(mfile_model)
+    #Snippet
+    snippet_model = session.query(models.Snippet).\
+                    filter(
+                            models.Snippet.name == str(snippet),
+                            models.Snippet.mellon_file_name == mfile_model.name
+                        ).first()
+    if not snippet_model:
+        snippet_model = component.createObject(\
+                        u"mellon_plugin.reporter.sqlalchemy.orm.model", snippet)
+        mfile_model.snippets = [snippet_model]
+        session.add(snippet_model) #add makes a diference vs merge for autoincrement id generation
+    #Secret
+    secret_model = component.createObject(\
+                    u"mellon_plugin.reporter.sqlalchemy.orm.model", secret)
+    snippet_model.secrets = [secret_model]
+    session.add(snippet_model)
+    discovery_date_model = models.SecretDiscoveryDate(datetime=now)
+    secret_model.secret_discovery_dates = [discovery_date_model]
+    session.add(discovery_date_model)
     
-    ormSecContext = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.model", mellon.IAuthorizationContext(mfile))
-    session.merge(ormSecContext)
-    ormFile = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.model", mfile)
-    session.merge(ormFile)
-    ormSnippet = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.model", snippet)
-    session.merge(ormSnippet)
-    if not ormSnippet.id:
-        session.add(ormSnippet)
-        session.flush()
-    ormSecret = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.model", secret, secret_snippet_id=ormSnippet.id)
-    session.merge(ormSecret)
+
     session.commit()
-    
     logger.debug(\
-                u"Found secret in file snippet.  Secret information: [{}]. Secret unique identifier [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
+                u"Secret persisted to ORM storage.  Secret information: [{}]. Secret unique identifier [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
                 .format(secret, secret.get_id(), snippet.__name__, mfile, mellon.IAuthorizationContext(snippet)))

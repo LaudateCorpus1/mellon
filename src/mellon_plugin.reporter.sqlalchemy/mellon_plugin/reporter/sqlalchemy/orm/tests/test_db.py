@@ -3,6 +3,7 @@ import unittest
 import zope.testrunner
 from sparc.testing.fixture import test_suite_mixin
 
+from sqlalchemy import exc
 from zope import component
 from mellon.reporters.memory.memory import report as memory_report
 from ..testing import MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
@@ -23,13 +24,15 @@ class MellonOrmReporterTestCase(unittest.TestCase):
         #verify current DN contents
         self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 2)
         mfile = memory_report[0].__parent__.__parent__
-        # create new non-unique model and then merge/check
+        # create new non-unique model and then check
         mfile_model_new = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.model", mfile)
-        self.layer.session.merge(mfile_model_new)
-        self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 2)
-        # create new unique model and then merge/check
+        self.layer.session.add(mfile_model_new)
+        with self.assertRaises(exc.IntegrityError):
+            self.layer.session.flush()
+        self.layer.session.rollback()
+        # create new unique model and then check
         mfile_model_unique = models.MellonFile(name="new unique file")
-        self.layer.session.merge(mfile_model_unique)
+        self.layer.session.add(mfile_model_unique)
         self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 3)
 
 class test_suite(test_suite_mixin):

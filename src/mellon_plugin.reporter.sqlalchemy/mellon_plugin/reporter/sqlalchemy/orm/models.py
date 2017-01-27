@@ -41,7 +41,7 @@ class OrmModelFromMellonProvider(object):
         elif mellon.IMellonFile.providedBy(mellon_provider):
             obj = MellonFile()
             obj.name = str(mellon_provider)
-            obj.authorization_context_id = mellon.IAuthorizationContext(mellon_provider).identity
+            #obj.authorization_context_id = mellon.IAuthorizationContext(mellon_provider).identity
         elif mellon.ISnippet.providedBy(mellon_provider):
             obj = Snippet()
             obj.name = mellon_provider.__name__
@@ -49,12 +49,12 @@ class OrmModelFromMellonProvider(object):
                 obj.data_blob = mellon_provider.data
             else:
                 obj.data_text = mellon_provider.data
-            obj.mellon_file_name = str(mellon_provider.__parent__)
+            #obj.mellon_file_name = str(mellon_provider.__parent__)
         elif mellon.ISecret.providedBy(mellon_provider):
             obj = Secret()
             obj.id = mellon_provider.get_id()
             obj.name = str(mellon_provider)
-            obj.snippet_id = secret_snippet_id
+            #obj.snippet_id = secret_snippet_id
         if not obj:
             raise ValueError("expected mellon_provider argument to provide a valid Mellon interface {}".format(mellon_provider))
         return obj
@@ -79,7 +79,7 @@ class MellonFile(Base):
                                     AuthorizationContext.__tablename__ + '.id'),
                     nullable=True) #not all files will have a security context
     authorization_context = orm.relationship('AuthorizationContext', 
-                                             back_populates=__tablename__)
+                                             back_populates='mellon_files')
     snippets = orm.relationship('Snippet', back_populates='mellon_file')
 
 @interface.implementer(interfaces.ISASnippet)
@@ -92,9 +92,12 @@ class Snippet(Base):
     mellon_file_name = sqlalchemy.Column(sqlalchemy.String, 
                     sqlalchemy.ForeignKey(MellonFile.__tablename__ + '.name'),
                     nullable=False)
-    mellon_file = orm.relationship('MellonFile', back_populates=__tablename__)
+    mellon_file = orm.relationship('MellonFile', back_populates='snippets')
     secrets = orm.relationship('Secret', back_populates='snippet')
-    sqlalchemy.UniqueConstraint('name','mellon_file')
+    __table_args__ = \
+                    (sqlalchemy.UniqueConstraint(\
+                            'name','mellon_file_name', name='file_snippet_un'),
+                     )
 
 @interface.implementer(interfaces.ISASecret)
 class Secret(Base):
@@ -104,15 +107,18 @@ class Secret(Base):
     snippet_id = sqlalchemy.Column(sqlalchemy.String, 
                     sqlalchemy.ForeignKey(Snippet.__tablename__ + '.id'),
                     nullable=False)
-    snippet = orm.relationship('Snippet', back_populates=__tablename__)
+    snippet = orm.relationship('Snippet', back_populates='secrets')
     secret_discovery_dates = orm.relationship('SecretDiscoveryDate', back_populates='secret')
 
 @interface.implementer(interfaces.ISASecretDiscoveryDate)
 class SecretDiscoveryDate(Base):
     __tablename__ = 'secret_discovery_dates'
+    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     secret_id = sqlalchemy.Column(sqlalchemy.String, 
                     sqlalchemy.ForeignKey(Secret.__tablename__ + '.id'),
-                    nullable=False, primary_key=True)
-    datetime = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, primary_key=True)
-    secret = orm.relationship('Secret', back_populates=__tablename__)
+                    nullable=False)
+    datetime = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
+    secret = orm.relationship('Secret', back_populates='secret_discovery_dates')
+    __table_args__ = (sqlalchemy.UniqueConstraint(\
+                    'secret_id', 'datetime', name='secret_discovery_date_un'),)
 

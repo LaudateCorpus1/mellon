@@ -3,7 +3,6 @@ import unittest
 import zope.testrunner
 from sparc.testing.fixture import test_suite_mixin
 from sqlalchemy import exc
-from sqlalchemy import orm
 from sqlalchemy.engine import reflection
 from .. import models
 from .. import interfaces as i
@@ -25,7 +24,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
     
     def test_model_MellonFile(self):
         mfile1 = models.MellonFile(name='mfile1')
-        self.layer.session.merge(mfile1)
+        self.layer.session.add(mfile1)
         
         mfile1 = self.layer.session.query(models.MellonFile).first()
         self.assertEquals(mfile1.name, 'mfile1')
@@ -33,13 +32,13 @@ class MellonORMReporterTestCase(unittest.TestCase):
     def test_model_Snippet(self):
         snippet1 = models.Snippet(id=5,name='snippet_name1') #foreign key fail
         with self.assertRaises(exc.IntegrityError):
-            self.layer.session.merge(snippet1)
+            self.layer.session.add(snippet1)
             self.layer.session.flush()
         self.layer.session.rollback()
         
         mfile1 = models.MellonFile(name='mfile1')
         mfile1.snippets = [snippet1]
-        self.layer.session.merge(mfile1)
+        self.layer.session.add(mfile1)
         
         snippet1 = self.layer.session.query(models.Snippet).first()
         self.assertEquals(snippet1.id, 5)
@@ -87,16 +86,16 @@ class MellonORMReporterTestCase(unittest.TestCase):
         #duplicate entries won't go
         discovery2 = models.SecretDiscoveryDate(datetime=now)
         secret1.secret_discovery_dates = [discovery1, discovery2]
-        with self.assertRaises(orm.exc.FlushError):
+        with self.assertRaises(exc.IntegrityError):
             self.layer.session.query(models.SecretDiscoveryDate).all()
         self.layer.session.rollback()
         
     def test_model_AuthorizationContext(self):
         auth_context1 = models.AuthorizationContext(id='auth_id1', name='auth_name1')
-        self.layer.session.merge(auth_context1)
+        self.layer.session.add(auth_context1)
         
         auth_context1.mellon_files = [models.MellonFile(name='mfile2'), models.MellonFile(name='mfile3')]
-        self.layer.session.merge(auth_context1)
+        self.layer.session.add(auth_context1)
 
         auth_context1 = self.layer.session.query(models.AuthorizationContext).first()
         self.assertEquals(auth_context1.id, 'auth_id1')
