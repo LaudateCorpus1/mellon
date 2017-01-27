@@ -26,10 +26,19 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
                  },
              'MellonFileProviderFactory':
                 {'name': 'mellon.factories.test.file_provider_for_testing'},
+             'MellonSnippet':
+                {
+                 'lines_increment': 2,
+                 'lines_coverage': 5,
+                 'bytes_read_size': 512000,
+                 'bytes_increment': 7,
+                 'bytes_coverage': 8
+                },
              'ZCMLConfiguration':
                 [
                     {'package':'mellon.sniffers.test'},
                     {'package':'mellon.factories.test'},
+                    {'package':'mellon.reporters.memory'},
                     {'package':'mellon_plugin.reporter.sqlalchemy.orm'}
                  ]
             }
