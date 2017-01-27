@@ -46,6 +46,7 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
         # We're gonna monkey-patch the default engine to make sure FK checks operate
         self.engine = self.create_engine()
         mellon_plugin.reporter.sqlalchemy.orm.db._Engine = self.engine
+        mellon_plugin.reporter.sqlalchemy.orm.db._Commit = False # allow tearDown rollbacks
         self.session = get_session()
     
     def tearDown(self):
@@ -57,4 +58,5 @@ class MellonOrmExecutedReporterLayer(MellonOrmRuntimeReporterLayer):
     def setUp(self):
         super(MellonOrmExecutedReporterLayer, self).setUp()
         self.app.go()
+        self.session.commit()
 MELLON_SA_ORM_REPORTER_EXECUTED_LAYER = MellonOrmExecutedReporterLayer(mellon_plugin.reporter.sqlalchemy.orm)

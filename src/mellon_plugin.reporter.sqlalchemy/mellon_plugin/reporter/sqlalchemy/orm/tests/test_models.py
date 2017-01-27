@@ -30,7 +30,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
         self.assertEquals(mfile1.name, 'mfile1')
     
     def test_model_Snippet(self):
-        snippet1 = models.Snippet(id=5,name='snippet_name1') #foreign key fail
+        snippet1 = models.Snippet(name='snippet_name1') #foreign key fail
         with self.assertRaises(exc.IntegrityError):
             self.layer.session.add(snippet1)
             self.layer.session.flush()
@@ -41,7 +41,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
         self.layer.session.add(mfile1)
         
         snippet1 = self.layer.session.query(models.Snippet).first()
-        self.assertEquals(snippet1.id, 5)
+        self.assertEquals(snippet1.id, 1)
     
     def test_model_Secret(self):
         mfile1 = models.MellonFile(name='mfile1')

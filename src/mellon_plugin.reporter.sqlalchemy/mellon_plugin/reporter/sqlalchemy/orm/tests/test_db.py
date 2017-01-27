@@ -18,7 +18,11 @@ class MellonOrmReporterTestCase(unittest.TestCase):
     
     def test_reporter(self):
         # now check orm
+        self.assertEquals(len(self.layer.session.query(models.AuthorizationContext).all()), 1)
+        self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 2)
+        self.assertEquals(len(self.layer.session.query(models.Snippet).all()), 2)
         self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2)
+        self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 2)
     
     def test_unique_entries(self):
         #verify current DN contents
