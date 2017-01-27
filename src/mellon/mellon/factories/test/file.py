@@ -47,9 +47,15 @@ class MellonFileProviderForTesting(object):
     """
     def __init__(self, config):
         self.config = config #unused
+        self.auth_context = component.createObject(\
+                                    u"mellon.authorization_context", 
+                                    id='test_id', 
+                                    description='A mock auth context for testing')
+        self.apply_context = component.getUtility(mellon.IApplyAuthorizationContext)
     
     def __iter__(self):
         for f in get_default_mellon_test_files():
+            self.apply_context(self.auth_context, f)
             yield f
 
 mellonFileProviderForTestingFactory = Factory(MellonFileProviderForTesting)
