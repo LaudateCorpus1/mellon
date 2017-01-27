@@ -8,7 +8,7 @@ import mellon
 
 Base = declarative_base()
 
-@interface.implementer(interfaces.IORMModel)
+@interface.implementer(interfaces.ISAModel)
 class OrmModelFromMellonProvider(object):
     def __new__(self, mellon_provider, secret_snippet_id=None):
         """Return a valid model object from a mellon object
@@ -16,17 +16,20 @@ class OrmModelFromMellonProvider(object):
         behavior is undefined for mellon_provider providing more than one valid
         interface.
         
+        Returned objects are not SA session aware.  This is a simple convenience
+        factory to generate SA models from Mellon interface providers.
+        
         Args:
             mellon_provider: Object providing one of the following from mellon: 
                              IAuthorizationContext, IMellonFile, ISnippet, 
                              or ISecret
-            secret_snippet_id: if mellon_provider is a ISecret provider, then
+            secret_snippet_id: if mellon_provider is a new ISecret provider, then
                                you must provide the valid foreign key id for
                                the related IORMSnippet provider.  This
                                information is not available within the 
                                mellon.ISecret provider path
         Returns:
-            A valid SQLAlchemy ORM object providing the corresponding IORMxxx
+            A valid SQLAlchemy ORM object providing the corresponding ISAxxx
             interface where xxx is Secret, Snippet, MellonFile, etc.
         """
         obj = None
@@ -57,28 +60,29 @@ class OrmModelFromMellonProvider(object):
         return obj
 ormModelFromMellonProviderFactory = Factory(OrmModelFromMellonProvider)
 
-@interface.implementer(interfaces.IORMAuthorizationContext)
+@interface.implementer(interfaces.ISAAuthorizationContext)
 class AuthorizationContext(Base):
     __tablename__ = 'authorization_contexts'
     id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     description = sqlalchemy.Column(sqlalchemy.String)
+    mellon_files = orm.relationship('MellonFile', 
+                                                     back_populates='authorization_context')
 
-
-@interface.implementer(interfaces.IORMMellonFile)
+@interface.implementer(interfaces.ISAMellonFile)
 class MellonFile(Base):
     __tablename__ = 'mellon_files'
     name = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
-    authorization_context_id = sqlalchemy.Column(sqlalchemy.String, 
+    authorization_context_id = \
+                sqlalchemy.Column(sqlalchemy.String, 
                     sqlalchemy.ForeignKey(\
                                     AuthorizationContext.__tablename__ + '.id'),
-                    nullable=False)
+                    nullable=True) #not all files will have a security context
     authorization_context = orm.relationship('AuthorizationContext', 
                                              back_populates=__tablename__)
-AuthorizationContext.mellon_files = orm.relationship('MellonFile', 
-                                                     back_populates='authorization_context')
+    snippets = orm.relationship('Snippet', back_populates='mellon_file')
 
-@interface.implementer(interfaces.IORMSnippet)
+@interface.implementer(interfaces.ISASnippet)
 class Snippet(Base):
     __tablename__ = 'snippets'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
@@ -89,9 +93,9 @@ class Snippet(Base):
                     sqlalchemy.ForeignKey(MellonFile.__tablename__ + '.name'),
                     nullable=False)
     mellon_file = orm.relationship('MellonFile', back_populates=__tablename__)
-MellonFile.snippets = orm.relationship('Snippet', back_populates='mellon_file')
+    secrets = orm.relationship('Secret', back_populates='snippet')
 
-@interface.implementer(interfaces.IORMSecret)
+@interface.implementer(interfaces.ISASecret)
 class Secret(Base):
     __tablename__ = 'secrets'
     id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
@@ -100,4 +104,4 @@ class Secret(Base):
                     sqlalchemy.ForeignKey(Snippet.__tablename__ + '.id'),
                     nullable=False)
     snippet = orm.relationship('Snippet', back_populates=__tablename__)
-Snippet.secrets = orm.relationship('Secret', back_populates='snippet')
+
