@@ -59,6 +59,12 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
     
     def setUp(self):
         super(MellonApplicationRuntimeLayer, self).setUp()
+        if self.verbose or self.debug:
+            if 'ZCMLConfiguration' not in self.config:
+                self.config['ZCMLConfiguration'] = []
+            if isinstance(self.config['ZCMLConfiguration'], dict):
+                self.config['ZCMLConfiguration'] = [self.config['ZCMLConfiguration']]
+            self.config['ZCMLConfiguration'].append({'package': 'mellon.reporters.logger'})
         self.app = create_and_register_app(self.config, self.verbose, self.debug)
         self.app.configure()
 
