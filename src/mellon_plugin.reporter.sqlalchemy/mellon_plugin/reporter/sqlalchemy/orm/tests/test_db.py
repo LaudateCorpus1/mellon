@@ -7,7 +7,6 @@ from zope import component
 from mellon.reporters.memory.memory import report as memory_report
 from ..testing import MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
 from .. import models
-from .. import interfaces as i
 
 
 class MellonOrmReporterTestCase(unittest.TestCase):
