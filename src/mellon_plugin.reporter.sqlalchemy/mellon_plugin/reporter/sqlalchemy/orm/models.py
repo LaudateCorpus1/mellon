@@ -67,7 +67,7 @@ class AuthorizationContext(Base):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     description = sqlalchemy.Column(sqlalchemy.String)
     mellon_files = orm.relationship('MellonFile', 
-                                                     back_populates='authorization_context')
+                                        back_populates='authorization_context')
 
 @interface.implementer(interfaces.ISAMellonFile)
 class MellonFile(Base):
@@ -86,7 +86,7 @@ class MellonFile(Base):
 class Snippet(Base):
     __tablename__ = 'snippets'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     data_blob = sqlalchemy.Column(sqlalchemy.BLOB)
     data_text = sqlalchemy.Column(sqlalchemy.Text)
     mellon_file_name = sqlalchemy.Column(sqlalchemy.String, 
@@ -94,6 +94,7 @@ class Snippet(Base):
                     nullable=False)
     mellon_file = orm.relationship('MellonFile', back_populates=__tablename__)
     secrets = orm.relationship('Secret', back_populates='snippet')
+    sqlalchemy.UniqueConstraint('name','mellon_file')
 
 @interface.implementer(interfaces.ISASecret)
 class Secret(Base):
@@ -104,4 +105,14 @@ class Secret(Base):
                     sqlalchemy.ForeignKey(Snippet.__tablename__ + '.id'),
                     nullable=False)
     snippet = orm.relationship('Snippet', back_populates=__tablename__)
+    secret_discovery_dates = orm.relationship('SecretDiscoveryDate', back_populates='secret')
+
+@interface.implementer(interfaces.ISASecretDiscoveryDate)
+class SecretDiscoveryDate(Base):
+    __tablename__ = 'secret_discovery_dates'
+    secret_id = sqlalchemy.Column(sqlalchemy.String, 
+                    sqlalchemy.ForeignKey(Secret.__tablename__ + '.id'),
+                    nullable=False, primary_key=True)
+    datetime = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False, primary_key=True)
+    secret = orm.relationship('Secret', back_populates=__tablename__)
 

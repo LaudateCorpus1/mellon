@@ -44,3 +44,19 @@ class IORMSecret(IORMModel):
     
 class ISASecret(ISAModel, IORMSecret):
     """A SA ORM secret"""
+
+class IORMSecretDiscoveryDate(IORMModel):
+    secret_id = interface.Attribute("valid IORMSecret.id reference")
+    datetime = interface.Attribute("Python datetime")
+    
+class ISASecretDiscoveryDate(ISAModel, IORMSecretDiscoveryDate):
+    """A SA ORM secret discovery date"""
+
+class ISecretDiscoveryDates(interface.Interface):
+    """Easy access to datetime information related to mellon.ISecret discoveries"""
+    def all():
+        """Iterator of ISASecretDiscoveryDate providers ordered from earliest"""
+    def first():
+        """Return oldest available ISASecretDiscoveryDate"""
+    def last():
+        """Return youngest available ISASecretDiscoveryDate"""

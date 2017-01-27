@@ -2,4 +2,12 @@ from .interfaces import IORMAuthorizationContext
 from .interfaces import IORMMellonFile
 from .interfaces import IORMModel
 from .interfaces import IORMSecret
+from .interfaces import IORMSecretDiscoveryDate
 from .interfaces import IORMSnippet
+from .interfaces import ISAAuthorizationContext
+from .interfaces import ISAMellonFile
+from .interfaces import ISAModel
+from .interfaces import ISASecret
+from .interfaces import ISASecretDiscoveryDate
+from .interfaces import ISASnippet
+from .interfaces import ISecretDiscoveryDates

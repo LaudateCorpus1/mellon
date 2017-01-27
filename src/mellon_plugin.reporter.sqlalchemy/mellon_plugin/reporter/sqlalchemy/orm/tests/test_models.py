@@ -3,12 +3,14 @@ import unittest
 import zope.testrunner
 from sparc.testing.fixture import test_suite_mixin
 from sqlalchemy import exc
+from sqlalchemy import orm
 from sqlalchemy.engine import reflection
 from .. import models
 from .. import interfaces as i
 
 from zope import component
 from io import StringIO
+from datetime import datetime
 from ..testing import MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
 
 class MellonORMReporterTestCase(unittest.TestCase):
@@ -42,6 +44,53 @@ class MellonORMReporterTestCase(unittest.TestCase):
         snippet1 = self.layer.session.query(models.Snippet).first()
         self.assertEquals(snippet1.id, 5)
     
+    def test_model_Secret(self):
+        mfile1 = models.MellonFile(name='mfile1')
+        snippet1 = models.Snippet(id=1,name='snippet_name1')
+        secret1 = models.Secret(id='1',name='secret_name1')
+        mfile1.snippets = [snippet1]
+        snippet1.secrets = [secret1]
+        self.layer.session.add(mfile1)
+        
+        secret1 = self.layer.session.query(models.Secret).first()
+        self.assertEquals(secret1.id, '1')
+    
+    def test_model_SecretDiscoveryDate(self):
+        now = datetime.now()
+        
+        #invalid entries won't go
+        disc_date_model1 = models.SecretDiscoveryDate(datetime=now) #doesn't have an assigned secret
+        self.layer.session.add(disc_date_model1)
+        with self.assertRaises(exc.IntegrityError):
+            self.layer.session.query(models.SecretDiscoveryDate).all()
+        self.layer.session.rollback()
+        disc_date_model1 = models.SecretDiscoveryDate(datetime=now, secret_id='bad')
+        self.layer.session.add(disc_date_model1)
+        with self.assertRaises(exc.IntegrityError):
+            self.layer.session.query(models.SecretDiscoveryDate).all()
+        self.layer.session.rollback()
+        
+        #good entries work as expected
+        mfile1 = models.MellonFile(name='mfile1')
+        snippet1 = models.Snippet(id=1,name='snippet_name1')
+        secret1 = models.Secret(id='1',name='secret_name1')
+        discovery1 = models.SecretDiscoveryDate(datetime=now)
+        mfile1.snippets = [snippet1]
+        snippet1.secrets = [secret1]
+        secret1.secret_discovery_dates = [discovery1]
+        self.layer.session.add(mfile1)
+        
+        discovery1 = self.layer.session.query(models.SecretDiscoveryDate).first()
+        self.assertEquals(discovery1.secret_id, secret1.id)
+        self.assertEquals(discovery1.datetime, now)
+        
+        #duplicate entries won't go
+        discovery2 = models.SecretDiscoveryDate(datetime=now)
+        secret1.secret_discovery_dates = [discovery1, discovery2]
+        with self.assertRaises(orm.exc.FlushError):
+            self.layer.session.query(models.SecretDiscoveryDate).all()
+        self.layer.session.rollback()
+        
     def test_model_AuthorizationContext(self):
         auth_context1 = models.AuthorizationContext(id='auth_id1', name='auth_name1')
         self.layer.session.merge(auth_context1)
