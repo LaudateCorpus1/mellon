@@ -3,11 +3,12 @@ import unittest
 import zope.testrunner
 from sparc.testing.fixture import test_suite_mixin
 
-from sqlalchemy import exc
-from zope import component
 from mellon.reporters.memory.memory import report as memory_report
+from mellon.sniffers.test.test import reset_test_sniffer
 from ..testing import MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
 from .. import models
+from zope import event
+import mellon
 
 
 class MellonOrmReporterTestCase(unittest.TestCase):
@@ -24,20 +25,30 @@ class MellonOrmReporterTestCase(unittest.TestCase):
         self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2)
         self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 2)
     
-    def test_unique_entries(self):
-        #verify current DN contents
-        self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 2)
-        mfile = memory_report[0].__parent__.__parent__
-        # create new non-unique model and then check
-        mfile_model_new = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.model", mfile)
-        self.layer.session.add(mfile_model_new)
-        with self.assertRaises(exc.IntegrityError):
-            self.layer.session.flush()
-        self.layer.session.rollback()
-        # create new unique model and then check
-        mfile_model_unique = models.MellonFile(name="new unique file")
-        self.layer.session.add(mfile_model_unique)
-        self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 3)
+    def test_repeated_secret(self):
+        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2)
+        _tripper = False
+        reset_test_sniffer()
+        for secret in memory_report:
+            snippet = secret.__parent__
+            event.notify(mellon.events.SnippetAvailableForSecretsSniffEvent(snippet))
+            _tripper = True
+        self.assertTrue(_tripper) #make sure loop ran ok
+        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2) #no new secrets.
+        
+        #now we'll just verify that the events we indeed ok by wiping the DB and trying again
+        for secret_discovery_date in self.layer.session.query(models.SecretDiscoveryDate).all():
+            self.layer.session.delete(secret_discovery_date)
+        self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 0)
+        for secret_model in self.layer.session.query(models.Secret).all():
+            self.layer.session.delete(secret_model)
+        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 0)
+        reset_test_sniffer()
+        for secret in memory_report:
+            snippet = secret.__parent__
+            event.notify(mellon.events.SnippetAvailableForSecretsSniffEvent(snippet))
+        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2) #the entries should be added this time around
+        
 
 class test_suite(test_suite_mixin):
     layer = MELLON_SA_ORM_REPORTER_EXECUTED_LAYER

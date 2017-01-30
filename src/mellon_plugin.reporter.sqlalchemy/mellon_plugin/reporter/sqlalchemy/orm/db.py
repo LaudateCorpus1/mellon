@@ -50,46 +50,66 @@ def orm_reporter_for_secret(event):
     snippet = secret.__parent__
     mfile = snippet.__parent__
     auth_context =  mellon.IAuthorizationContext(mfile)
-    #AuthorizationContext & MellonFile
+    #AuthorizationContext
     auth_context_model = None
     if auth_context.identity:
-        auth_context_model = component.createObject(\
+        auth_context_model = session.query(models.AuthorizationContext).\
+                    filter(
+                            models.AuthorizationContext.id == auth_context.identity
+                        ).first()
+        if not auth_context_model:
+            auth_context_model = component.createObject(\
                     u"mellon_plugin.reporter.sqlalchemy.orm.model", 
                     mellon.IAuthorizationContext(mfile))
-        auth_context_model = session.merge(auth_context_model)
-    mfile_model = component.createObject(\
+            session.add(auth_context_model)
+            session.flush()
+    #MellonFile
+    mfile_model = session.query(models.MellonFile).\
+        filter(
+            models.MellonFile.name == str(mfile),
+            models.MellonFile.authorization_context_id == auth_context_model.id)\
+        .first()
+    if not mfile_model:
+        mfile_model = component.createObject(\
                     u"mellon_plugin.reporter.sqlalchemy.orm.model", mfile)
-    mfile_model = session.merge(mfile_model)
-    if auth_context_model:
-        auth_context_model.mellon_files = [mfile_model]
+        mfile_model.authorization_context_id = auth_context_model.id
+        session.add(mfile_model)
+        session.flush()
     #Snippet
     snippet_model = session.query(models.Snippet).\
                     filter(
-                            models.Snippet.name == str(snippet),
-                            models.Snippet.mellon_file_name == mfile_model.name
+                            models.Snippet.name == snippet.__name__,
+                            models.Snippet.mellon_file_id == mfile_model.id
                         ).first()
+    #import pdb;pdb.set_trace()
     if not snippet_model:
         snippet_model = component.createObject(\
                         u"mellon_plugin.reporter.sqlalchemy.orm.model", snippet)
-    mfile_model.snippets = [snippet_model]
-    session.flush()
-    snippet_model = session.merge(snippet_model) #merges the id
+        snippet_model.mellon_file_id = mfile_model.id
+        session.add(snippet_model)
+        session.flush() #assigns the snippet Id
     #Secret
+    #import pdb;pdb.set_trace()
     secret_model = session.query(models.Secret).\
-                    filter(models.Secret.id == secret.get_id()).first()
+                    filter(models.Secret.id == secret.get_id(),
+                           models.Secret.snippet_id == snippet_model.id).first()
     if not secret_model:
         secret_model = component.createObject(\
-                    u"mellon_plugin.reporter.sqlalchemy.orm.model", secret)
-    snippet_model.secrets = [secret_model]
-    session.flush()
-    #Discovery
+                    u"mellon_plugin.reporter.sqlalchemy.orm.model", 
+                    secret,
+                    secret_snippet_id=snippet_model.id)
+        secret_model.snippet_id = snippet_model.id
+        session.add(secret_model)
+        session.flush()
+    #DiscoveryDate
     discovery_date_model = session.query(models.SecretDiscoveryDate).\
                     filter(models.SecretDiscoveryDate.secret_id == secret_model.id,
                            models.SecretDiscoveryDate.datetime == now)\
                     .first()
     if not discovery_date_model:
-        discovery_date_model = models.SecretDiscoveryDate(datetime=now)
-    secret_model.secret_discovery_dates = [discovery_date_model]
+        discovery_date_model = models.SecretDiscoveryDate(datetime=now, secret_id=secret_model.id)
+        discovery_date_model.secret_id = secret_model.id
+        session.add(discovery_date_model)
     session.flush()
     if _Commit:
         session.commit()
