@@ -1,0 +1,9 @@
+#MellonWorkflowAssignableSeverities
+# Defines a set of severities that can be assigned to a secret
+MellonWorkflowAssignableSeverities:
+ - token: term_1 #ascii only
+   value: Term 1 #for display
+   description: describe the severity #for help
+ - token: term_2 # ascii only
+   value: same as above
+   description: same as above
