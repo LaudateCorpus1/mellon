@@ -49,7 +49,7 @@ class MellonFileProviderForTesting(object):
         self.config = config #unused
         self.auth_context = component.createObject(\
                                     u"mellon.authorization_context", 
-                                    id='test_id', 
+                                    identity='test_identity', 
                                     description='A mock auth context for testing')
         self.apply_context = component.getUtility(mellon.IApplyAuthorizationContext)
     
