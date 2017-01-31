@@ -1,0 +1,9 @@
+#MellonWorkflowAssignableStatuses
+# Defines a set of terms that can be used when assigning status to a secret
+MellonWorkflowSecretAssignableStatuses:
+ - token: term_1 #ascii only
+   value: Term 1 #for display
+   description: describe the status #for help
+ - token: term_2 # ascii only
+   value: same as above
+   description: same as above
