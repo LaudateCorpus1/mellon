@@ -1,9 +1,9 @@
-from mellon.testing import MellonApplicationRuntimeLayer
+from ..testing import MellonOrmRuntimeWorkflowLayer
 import mellon_plugin.reporter.sqlalchemy
 
-class MellonOrmRuntimeWorkflowStatusLayer(MellonApplicationRuntimeLayer):
-    def setUp(self):
-        self.config = \
+class MellonOrmRuntimeWorkflowStatusLayer(MellonOrmRuntimeWorkflowLayer):
+    def setUp(self, config=None):
+        _config = \
             {
              'MellonWorkflowSecretAssignableStatuses':
                 [
@@ -13,11 +13,9 @@ class MellonOrmRuntimeWorkflowStatusLayer(MellonApplicationRuntimeLayer):
                     {'token': 'token_2',
                      'value': u'title 2',
                      'description': u'description 2'},
-                 ],
-             'ZCMLConfiguration':
-                [
-                    {'package':'mellon_plugin.reporter.sqlalchemy.orm.workflow'}
-                ]
+                 ]
             }
-        super(MellonOrmRuntimeWorkflowStatusLayer, self).setUp()
+        if config:
+            _config.update(config)
+        super(MellonOrmRuntimeWorkflowStatusLayer, self).setUp(_config)
 MELLON_SA_ORM_WORKFLOW_STATUS_RUNTIME_LAYER = MellonOrmRuntimeWorkflowStatusLayer(mellon_plugin.reporter.sqlalchemy)

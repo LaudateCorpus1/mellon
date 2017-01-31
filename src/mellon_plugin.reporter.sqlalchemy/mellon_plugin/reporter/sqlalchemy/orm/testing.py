@@ -15,8 +15,8 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
         return engine
     
 
-    def setUp(self):
-        self.config = \
+    def setUp(self, config=None):
+        _config = \
             {
              'SQLAlchemyORMReporter':
                 {'SQLAlchemyReporter':
@@ -42,6 +42,9 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
                     {'package':'mellon_plugin.reporter.sqlalchemy.orm'}
                  ]
             }
+        if config:
+            _config.update(config)
+        self.config = _config
         super(MellonOrmRuntimeReporterLayer, self).setUp()
         # We're gonna monkey-patch the default engine to make sure FK checks operate
         self.engine = self.create_engine()
