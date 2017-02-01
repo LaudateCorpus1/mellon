@@ -79,6 +79,10 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
     
     def tearDown(self):
         reset_report()
+        # expire the db engine/session globals.
+        mellon_plugin.reporter.sqlalchemy.orm.db._session = False
+        mellon_plugin.reporter.sqlalchemy.orm.db._Session = False
+        mellon_plugin.reporter.sqlalchemy.orm.db._Engine = False
         super(MellonOrmRuntimeReporterLayer, self).tearDown()
 MELLON_SA_ORM_REPORTER_RUNTIME_LAYER = MellonOrmRuntimeReporterLayer(mellon_plugin.reporter.sqlalchemy)
 
