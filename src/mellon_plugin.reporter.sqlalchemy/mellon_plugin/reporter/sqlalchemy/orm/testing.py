@@ -2,7 +2,9 @@ from mellon.testing import MellonApplicationRuntimeLayer
 from mellon.reporters.memory.memory import reset_report
 from sqlalchemy import create_engine, event
 import mellon_plugin.reporter.sqlalchemy.orm
+from datetime import datetime
 from .db import get_session
+from . import models
 
 class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
     
@@ -14,6 +16,29 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
         event.listen(engine, 'connect', _fk_pragma_on_connect)
         return engine
     
+    def create_full_model(self):
+        """Returns a dict whose keys are Model names, and whose values are the related models"""
+        auth_context = models.AuthorizationContext(id='authorization_context_1',name='authorization context 1')
+        self.session.add(auth_context)
+        self.session.flush()
+        mellon_file = models.MellonFile(name='mellon file 1', authorization_context_id=auth_context.id)
+        self.session.add(mellon_file)
+        self.session.flush()
+        snippet = models.Snippet(name='snippet 1', mellon_file_id=mellon_file.id)
+        self.session.add(snippet)
+        self.session.flush()
+        secret = models.Secret(id='secret_1',name='secret 1',snippet_id=snippet.id)
+        self.session.add(secret)
+        self.session.flush()
+        discovery_date = models.SecretDiscoveryDate(secret_id=secret.id, datetime=datetime.now())
+        self.session.add(secret)
+        self.session.flush()
+        return {'AuthorizationContext': auth_context,
+                'MellonFile': mellon_file,
+                'Snippet': snippet,
+                'Secret': secret,
+                'SecretDiscoveryDate': discovery_date}
+        
 
     def setUp(self, config=None):
         _config = \
