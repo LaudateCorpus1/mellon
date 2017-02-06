@@ -16,28 +16,33 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
         event.listen(engine, 'connect', _fk_pragma_on_connect)
         return engine
     
-    def create_full_model(self):
-        """Returns a dict whose keys are Model names, and whose values are the related models"""
-        auth_context = models.AuthorizationContext(id='authorization_context_1',name='authorization context 1')
-        self.session.add(auth_context)
-        self.session.flush()
-        mellon_file = models.MellonFile(name='mellon file 1', authorization_context_id=auth_context.id)
-        self.session.add(mellon_file)
-        self.session.flush()
-        snippet = models.Snippet(name='snippet 1', mellon_file_id=mellon_file.id)
-        self.session.add(snippet)
-        self.session.flush()
-        secret = models.Secret(id='secret_1',name='secret 1',snippet_id=snippet.id)
-        self.session.add(secret)
-        self.session.flush()
-        discovery_date = models.SecretDiscoveryDate(secret_id=secret.id, datetime=datetime.now())
-        self.session.add(secret)
-        self.session.flush()
-        return {'AuthorizationContext': auth_context,
+    def create_full_model(self, count=1):
+        """Returns a list of dicts (or a single dict) whose keys are Model names, and whose values are the related models"""
+        _return = []
+        for i in range(count):
+            num = i+1
+            auth_context = models.AuthorizationContext(id='authorization_context_'+num,name='authorization context '+num)
+            self.session.add(auth_context)
+            self.session.flush()
+            mellon_file = models.MellonFile(name='mellon file '+num, authorization_context_id=auth_context.id)
+            self.session.add(mellon_file)
+            self.session.flush()
+            snippet = models.Snippet(name='snippet '+num, mellon_file_id=mellon_file.id)
+            self.session.add(snippet)
+            self.session.flush()
+            secret = models.Secret(id='secret_'+num,name='secret '+num,snippet_id=snippet.id)
+            self.session.add(secret)
+            self.session.flush()
+            discovery_date = models.SecretDiscoveryDate(secret_id=secret.id, datetime=datetime.now())
+            self.session.add(secret)
+            self.session.flush()
+            _return.append({'AuthorizationContext': auth_context,
                 'MellonFile': mellon_file,
                 'Snippet': snippet,
                 'Secret': secret,
-                'SecretDiscoveryDate': discovery_date}
+                'SecretDiscoveryDate': discovery_date})
+        
+        return _return if len(_return) > 1 else _return[0]
         
 
     def setUp(self, config=None):
