@@ -1,0 +1,4 @@
+#Eve configuration
+# Key value pairs passed into the Eve application server
+Eve:
+ key_1: value_1
