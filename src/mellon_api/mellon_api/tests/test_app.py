@@ -11,6 +11,10 @@ from ..testing import MELLON_API_RUNTIME_LAYER
 class MellonApiwargsTestCase(unittest.TestCase):
     layer = MELLON_API_RUNTIME_LAYER
     
+    def test_app(self):
+        eve_app = component.getUtility(mellon_api.IEveApplication)
+        self.assertTrue(mellon_api.IEveApplication.providedBy(eve_app))
+    
     def test_kwargs(self):
         kwargs = component.getUtility(mellon_api.IEveApplicationKwargs).kwargs
         self.assertTrue(isinstance(kwargs, dict))

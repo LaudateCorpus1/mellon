@@ -27,8 +27,14 @@ def create_eve_app():
         kwargs['settings']['DOMAIN'] = {}
     config_settings.update(kwargs['settings']) #over-write conflicting keys
     kwargs['settings'] = config_settings
-    return Eve(**kwargs)
-    
+    eve_app = Eve(**kwargs)
+    interface.alsoProvides(eve_app, mellon_api.IEveApplication)
+    return eve_app
+
+def create_and_register_eve_app():
+    eve_app = create_eve_app()
+    sm = component.getSiteManager()
+    sm.registerUtility(eve_app, mellon_api.IEveApplication) #give components access to app config
 
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
@@ -38,9 +44,9 @@ def main():
     mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
     create_and_register_app(args.config_file, args.verbose, args.debug)
     component.getUtility(IMellonApplication).configure()
-    
-    eve_app = create_eve_app()
-    eve_app.run()
+    #create, register, and run the Eve application
+    create_and_register_eve_app()
+    component.getUtility(mellon_api.IEveApplication).run()
 
 if __name__ == '__main__':
     main()

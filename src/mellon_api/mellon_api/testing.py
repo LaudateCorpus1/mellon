@@ -2,14 +2,14 @@ from multiprocessing import Process
 from mellon_plugin.reporter.sqlalchemy.orm.testing import MellonOrmRuntimeReporterLayer
 import mellon
 import mellon_api
-from mellon_api.app import create_eve_app
+from mellon_api.app import create_and_register_eve_app
 
 class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
     
     def setUp(self, config=None):
         mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
         super(MellonApiRuntimeLayer, self).setUp()
-        self.eve_app = create_eve_app()
+        create_and_register_eve_app()
     
     def tearDown(self):
         self.stopApi()

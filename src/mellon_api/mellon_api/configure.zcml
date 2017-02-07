@@ -4,6 +4,7 @@
     i18n_domain="mellon_api">
 
     <include package="mellon" />
+    <include package=".sa" />
 
     <utility
         provides=".IEveApplicationKwargs"
