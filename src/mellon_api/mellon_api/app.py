@@ -1,4 +1,5 @@
 from zope import component
+from zope import interface
 from eve import Eve
 from sparc.configuration.container import application
 import mellon
@@ -10,23 +11,34 @@ DESCRIPTION="""\
 Mellon Restful API server.
 """
 
+@interface.implementer(mellon_api.IEveApplicationKwargs)
+class EveApplicationKwargs(object):
+    def __init__(self):
+        self.kwargs = {}
+
 def create_eve_app():
     m = get_registered_app()
-    kwargs = {}
-    kwargs['settings'] = m['vgetter'].get('Eve', default={'DOMAIN':{}})
-    kwargs['settings'].update(component.queryUtility(mellon_api.IEveSettings).settings)
-    kwargs['auth'] = component.queryUtility(mellon_api.IEveAuthProvider)
+    config_settings = m['vgetter'].get('Eve', default={})
+    
+    kwargs = component.getUtility(mellon_api.IEveApplicationKwargs).kwargs
+    if 'settings' not in kwargs:
+        kwargs['settings'] = {}
+    if 'DOMAIN' not in kwargs['settings']:
+        kwargs['settings']['DOMAIN'] = {}
+    config_settings.update(kwargs['settings']) #over-write conflicting keys
+    kwargs['settings'] = config_settings
     return Eve(**kwargs)
     
 
 def main():
-    # we'll override the core ZCML initializer with our own.
-    mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
-    # create and register the Mellon app
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
+    # we'll override the core ZCML initializer with our own. then create the
+    # base mellon application and init the component registry with the 
+    # yaml-based zcml entry points
+    mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
     create_and_register_app(args.config_file, args.verbose, args.debug)
-    # init the runtime zcml directives
     component.getUtility(IMellonApplication).configure()
+    
     eve_app = create_eve_app()
     eve_app.run()
 

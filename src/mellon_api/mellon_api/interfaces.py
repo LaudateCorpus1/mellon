@@ -1,8 +1,5 @@
 from zope import interface
 
-class IEveAuthProvider(interface.Interface):
-    """Marker for an Eve auth provider that can be passed into runtime Eve app"""
-
-class IEveSettings(interface.Interface):
-    """Eve application configuration settings"""
-    settings = interface.Attribute("Dict of valid Eve key value pairs")
+class IEveApplicationKwargs(interface.Interface):
+    """Marker for kwargs singleton to be delivered into IEveApplication singleton"""
+    kwargs = interface.Attribute("Dict of kwargs to be given to IEveApplication singleton")

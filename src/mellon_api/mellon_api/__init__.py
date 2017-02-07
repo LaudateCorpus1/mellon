@@ -1,2 +1,1 @@
-from .interfaces import IEveAuthProvider
-from .interfaces import IEveSettings
+from .interfaces import IEveApplicationKwargs

@@ -4,10 +4,10 @@
     i18n_domain="mellon_api">
 
     <include package="mellon" />
-    
+
     <utility
-        provides=".IEveSettings"
-        component=".settings.default_eve_settings"
+        provides=".IEveApplicationKwargs"
+        factory=".app.EveApplicationKwargs"
         />
 
 </configure>

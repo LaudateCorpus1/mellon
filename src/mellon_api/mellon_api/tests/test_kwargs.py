@@ -8,22 +8,22 @@ import mellon_api
 from ..testing import MELLON_API_RUNTIME_LAYER
 
 
-class MellonApiSettingsTestCase(unittest.TestCase):
+class MellonApiwargsTestCase(unittest.TestCase):
     layer = MELLON_API_RUNTIME_LAYER
     
-    def test_settings(self):
-        settings = component.getUtility(mellon_api.IEveSettings).settings
-        self.assertIn('DOMAIN', settings)
+    def test_kwargs(self):
+        kwargs = component.getUtility(mellon_api.IEveApplicationKwargs).kwargs
+        self.assertTrue(isinstance(kwargs, dict))
 
 
 class test_suite(test_suite_mixin):
     layer = MELLON_API_RUNTIME_LAYER
     package = 'mellon_api'
-    module = 'settings'
+    module = 'app'
     
     def __new__(cls):
         suite = super(test_suite, cls).__new__(cls)
-        suite.addTest(unittest.makeSuite(MellonApiSettingsTestCase))
+        suite.addTest(unittest.makeSuite(MellonApiwargsTestCase))
         return suite
 
 if __name__ == '__main__':
