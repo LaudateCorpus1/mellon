@@ -20,7 +20,7 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
         """Returns a list of dicts (or a single dict) whose keys are Model names, and whose values are the related models"""
         _return = []
         for i in range(count):
-            num = i+1
+            num = str(i+1)
             auth_context = models.AuthorizationContext(id='authorization_context_'+num,name='authorization context '+num)
             self.session.add(auth_context)
             self.session.flush()
