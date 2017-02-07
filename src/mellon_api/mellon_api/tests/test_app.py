@@ -12,14 +12,9 @@ class MellonApiwargsTestCase(unittest.TestCase):
     layer = MELLON_API_RUNTIME_LAYER
     
     def test_app(self):
-        eve_app = component.getUtility(mellon_api.IEveApplication)
-        self.assertTrue(mellon_api.IEveApplication.providedBy(eve_app))
+        app = component.getUtility(mellon_api.IFlaskApplication)
+        self.assertTrue(mellon_api.IFlaskApplication.providedBy(app))
     
-    def test_kwargs(self):
-        kwargs = component.getUtility(mellon_api.IEveApplicationKwargs).kwargs
-        self.assertTrue(isinstance(kwargs, dict))
-
-
 class test_suite(test_suite_mixin):
     layer = MELLON_API_RUNTIME_LAYER
     package = 'mellon_api'

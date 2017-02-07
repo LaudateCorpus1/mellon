@@ -1,4 +1,4 @@
-#Eve configuration
-# Key value pairs passed into the Eve application server
-Eve:
+#Flask configuration
+# Key value pairs passed into the Flask application server
+flask:
  key_1: value_1

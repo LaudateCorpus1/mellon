@@ -1,6 +1,6 @@
 from zope import component
 from zope import interface
-from eve import Eve
+from flask import Flask
 from sparc.configuration.container import application
 import mellon
 import mellon_api
@@ -11,30 +11,23 @@ DESCRIPTION="""\
 Mellon Restful API server.
 """
 
-@interface.implementer(mellon_api.IEveApplicationKwargs)
-class EveApplicationKwargs(object):
-    def __init__(self):
-        self.kwargs = {}
 
-def create_eve_app():
-    m = get_registered_app()
-    config_settings = m['vgetter'].get('Eve', default={})
-    
-    kwargs = component.getUtility(mellon_api.IEveApplicationKwargs).kwargs
-    if 'settings' not in kwargs:
-        kwargs['settings'] = {}
-    if 'DOMAIN' not in kwargs['settings']:
-        kwargs['settings']['DOMAIN'] = {}
-    config_settings.update(kwargs['settings']) #over-write conflicting keys
-    kwargs['settings'] = config_settings
-    eve_app = Eve(**kwargs)
-    interface.alsoProvides(eve_app, mellon_api.IEveApplication)
-    return eve_app
+def create_flask_app():
+    return Flask('mellon_api')
+app = create_flask_app()
 
-def create_and_register_eve_app():
-    eve_app = create_eve_app()
+def register_flask_app():
+    interface.alsoProvides(app, mellon_api.IFlaskApplication)
     sm = component.getSiteManager()
-    sm.registerUtility(eve_app, mellon_api.IEveApplication) #give components access to app config
+    sm.registerUtility(app, mellon_api.IFlaskApplication) #give components access to app config
+
+def configure_flask_app():
+    m = get_registered_app()
+    config_settings = m['vgetter'].get('Flask', default={})
+    
+    for k in config_settings:
+        if k not in app.config:
+            app.config[k] = config_settings[k]
 
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
@@ -44,9 +37,10 @@ def main():
     mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
     create_and_register_app(args.config_file, args.verbose, args.debug)
     component.getUtility(IMellonApplication).configure()
-    #create, register, and run the Eve application
-    create_and_register_eve_app()
-    component.getUtility(mellon_api.IEveApplication).run()
+    #create, register, and run the application
+    register_flask_app()
+    configure_flask_app()
+    component.getUtility(mellon_api.IFlaskApplication).run()
 
 if __name__ == '__main__':
     main()

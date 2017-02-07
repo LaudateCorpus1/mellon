@@ -41,7 +41,8 @@ setup(name='mellon_api',
           'zope.interface',
           'sparc.configuration',
           'sparc.logging',
-          'eve'
+          'flask',
+          'flask-restplus'
       ],
       tests_require=[
       ],

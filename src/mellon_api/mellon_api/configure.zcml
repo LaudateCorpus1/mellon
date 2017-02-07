@@ -6,9 +6,4 @@
     <include package="mellon" />
     <include package=".sa" />
 
-    <utility
-        provides=".IEveApplicationKwargs"
-        factory=".app.EveApplicationKwargs"
-        />
-
 </configure>
