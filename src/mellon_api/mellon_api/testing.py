@@ -29,7 +29,7 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
     def startApi(self):
         if not self.app_process:
             app = component.getUtility(mellon_api.IFlaskApplication)
-            self.app_process = Process(target=app.run())
+            self.app_process = Process(target=app.run, kwargs={'debug':self.debug})
             self.app_process.start()
     
     def stopApi(self):
