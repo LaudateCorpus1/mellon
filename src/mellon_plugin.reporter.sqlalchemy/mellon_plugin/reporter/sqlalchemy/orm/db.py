@@ -12,7 +12,7 @@ _Commit = True # True indicates to issue a session commit for each reported secr
 _Engine = None
 _Session = None
 _session = None
-def _create_engine():
+def create_engine():
     m = mellon.mellon.get_registered_app()
     _dsn = m['vgetter'].get('SQLAlchemyORMReporter','SQLAlchemyReporter','SQLAlchemyEngine','dsn')
     _kwargs = m['vgetter'].get('SQLAlchemyORMReporter','SQLAlchemyReporter','SQLAlchemyEngine','kwargs', default={})
@@ -24,7 +24,7 @@ def get_engine():
     """Return module SQLalchemy Engine singleton"""
     global _Engine
     if not _Engine:
-        _Engine = _create_engine()
+        _Engine = create_engine()
     return _Engine
 
 def get_session():
