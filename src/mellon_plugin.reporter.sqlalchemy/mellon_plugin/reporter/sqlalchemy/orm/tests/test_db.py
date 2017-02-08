@@ -10,9 +10,11 @@ from .. import models
 from zope import event
 import mellon
 
-
 class MellonOrmReporterTestCase(unittest.TestCase):
     layer = MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
+    
+    def setUp(self):
+        self.layer.session.begin_nested()
     
     def tearDown(self):
         self.layer.session.rollback()

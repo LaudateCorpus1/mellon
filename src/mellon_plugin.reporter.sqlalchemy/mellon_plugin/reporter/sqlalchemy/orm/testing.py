@@ -9,11 +9,25 @@ from . import models
 class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
     
     def create_engine(self):
+        engine = create_engine('sqlite:///:memory:', echo=self.debug)
+        
         #http://stackoverflow.com/questions/2614984/sqlite-sqlalchemy-how-to-enforce-foreign-keys
         def _fk_pragma_on_connect(dbapi_con, con_record):
             dbapi_con.execute('pragma foreign_keys=ON')
-        engine = create_engine('sqlite:///:memory:', echo=self.debug)
         event.listen(engine, 'connect', _fk_pragma_on_connect)
+        
+        #http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html#pysqlite-serializable
+        def _isolation_level_on_connect(dbapi_con, con_record):
+            # disable pysqlite's emitting of the BEGIN statement entirely.
+            # also stops it from emitting COMMIT before any DDL.
+            dbapi_con.isolation_level = None
+        event.listen(engine, 'connect', _isolation_level_on_connect)
+        
+        def _do_begin(conn):
+            # emit our own BEGIN
+            conn.execute("BEGIN")
+        event.listen(engine, 'begin', _do_begin)
+        
         return engine
     
     def create_full_model(self, count=1):
@@ -95,5 +109,10 @@ class MellonOrmExecutedReporterLayer(MellonOrmRuntimeReporterLayer):
     def setUp(self):
         super(MellonOrmExecutedReporterLayer, self).setUp()
         self.app.go()
-        self.session.commit()
+        self.session.flush()
+    
+    def tearDown(self):
+        self.session.rollback()
+        super(MellonOrmExecutedReporterLayer, self).tearDown()
 MELLON_SA_ORM_REPORTER_EXECUTED_LAYER = MellonOrmExecutedReporterLayer(mellon_plugin.reporter.sqlalchemy.orm)
+
