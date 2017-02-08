@@ -6,6 +6,12 @@ import mellon_api
 from mellon_api.app import create_flask_app, register_flask_app, configure_flask_app
 
 class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
+    """
+    Keep in mind the 2 different contexts for DB interaction.  From the parent
+    class, self.session will be available via the reporter orm package.
+    In addition, the flask registration will create an independent 
+    engine/session.
+    """
     
     def setUp(self, config=None):
         mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
@@ -14,7 +20,7 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
         configure_flask_app()
     
     def tearDown(self):
-        self.stopApi()
+        self.stopApi() #calls commit to Flask db session via event subscription (also removes scoped Flask session)
         super(MellonApiRuntimeLayer, self).tearDown()
         mellon_api.app.app = create_flask_app() #reset the global
     
@@ -39,7 +45,11 @@ class MellonApiExecutedLayer(MellonApiRuntimeLayer):
     def setUp(self):
         super(MellonApiExecutedLayer, self).setUp()
         self.create_full_model(count=200)
-        self.session.commit()
+        self.session.flush()
         self.startApi()
+    
+    def tearDown(self):
+        self.session.rollback()
+        super(MellonApiExecutedLayer, self).tearDown()
 
 MELLON_API_EXECUTED_LAYER = MellonApiExecutedLayer(mellon_api)
