@@ -1,0 +1,8 @@
+#MellonApi
+# Parameters affecting the Mellon API.  Heavily borrowed from 
+# http://eve.readthedocs.io/en/stable/config.html
+ MellonApi:
+  settings:
+   PAGINATION: True #Default True for GET request pagination
+   PAGINATION_LIMIT: 50 #Default 50 for pagination max limit
+   PAGINATION_DEFAULT: 25 #Default 25 for unspecified pagination result amount

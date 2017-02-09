@@ -5,22 +5,28 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 import mellon_api
 from mellon_api.sa import ISAEngine, ISASession
-from mellon_plugin.reporter.sqlalchemy import orm
+from mellon_plugin.reporter.sqlalchemy.orm import db
 from ..models import Base
+
+from sparc.logging import logging
+logger = logging.getLogger(__name__)
 
 @component.adapter(mellon_api.IFlaskApplication, IRegistrationEvent)
 def create_and_register_sa_utils(app, event):
     sm = component.getSiteManager()
-    if not sm.queryUtility(ISAEngine):
-        engine = orm.db.create_engine()
+    engine = sm.queryUtility(ISAEngine)
+    if not engine:
+        engine = db.create_engine()
         interface.alsoProvides(engine, ISAEngine)
         sm.registerUtility(engine, ISAEngine)
+        logger.debug("registered ISAEngine based on mellon_api yaml config for SQLAlchemyORMReporter key")
     
     if not sm.queryUtility(ISASession):
         session_factory = sessionmaker(bind=engine)
         Session = scoped_session(session_factory) #thread-local sessions
         interface.alsoProvides(Session, ISASession)
         sm.registerUtility(Session, ISASession) # call component.getUtility(ISASession) to get thread-local session
+        logger.debug("registered scoped ISASession session utility based")
 
 @component.adapter(ISAEngine, IRegistrationEvent)
 def create_models(engine, event):
@@ -34,7 +40,8 @@ def commit_request(session, event):
     app = component.getUtility(mellon_api.IFlaskApplication)
     @app.teardown_appcontext
     def shutdown_session(exception=None):
-        if not exception:
-            component.getUtility(ISASession).commit()
-        component.getUtility(ISASession).remove()
+        if component.queryUtility(ISASession):
+            if not exception:
+                component.getUtility(ISASession).commit()
+            component.getUtility(ISASession).remove()
     _test_commit_request_registrations = True

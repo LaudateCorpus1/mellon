@@ -1,33 +1,41 @@
 from zope import component
 from zope import interface
-from flask import Flask
+from flask import Flask, Blueprint
+from flask_restplus import Api
 from sparc.configuration.container import application
 import mellon
 import mellon_api
 from mellon import IMellonApplication
 from mellon.mellon import create_and_register_app, get_registered_app
 
+from sparc.logging import logging
+logger = logging.getLogger(__name__)
+
 DESCRIPTION="""\
 Mellon Restful API server.
 """
 
-
-def create_flask_app():
-    return Flask('mellon_api')
-app = create_flask_app()
-
 def register_flask_app():
+    app = Flask('mellon_api')
+    api = Api(app)
+
     interface.alsoProvides(app, mellon_api.IFlaskApplication)
+    interface.alsoProvides(api, mellon_api.IFlaskRestApiApplication)
     sm = component.getSiteManager()
-    sm.registerUtility(app, mellon_api.IFlaskApplication) #give components access to app config
+    sm.registerUtility(app, mellon_api.IFlaskApplication)
+    logger.debug('new mellon_api.IFlaskApplication singleton registered')
+    sm.registerUtility(api, mellon_api.IFlaskRestApiApplication)
+    logger.debug('new mellon_api.IFlaskRestApiApplication singleton registered')
 
 def configure_flask_app():
     m = get_registered_app()
     config_settings = m['vgetter'].get('Flask', default={})
     
+    app = component.getUtility(mellon_api.IFlaskApplication)
     for k in config_settings:
         if k not in app.config:
             app.config[k] = config_settings[k]
+    logger.debug('mellon_api.IFlaskApplication singleton configured with runtime settings from Mellon yaml config.')
 
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
@@ -40,6 +48,10 @@ def main():
     #create, register, and run the application
     register_flask_app()
     configure_flask_app()
+    #if args.debug:
+    #    app.logger.addHandler(handler)
+    #    #app.config['DEBUG'] = True
+    #    app.logger.setLevel(logging.DEBUG)
     component.getUtility(mellon_api.IFlaskApplication).run()
 
 if __name__ == '__main__':

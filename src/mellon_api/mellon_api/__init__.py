@@ -1,1 +1,2 @@
 from .interfaces import IFlaskApplication
+from .interfaces import IFlaskRestApiApplication
