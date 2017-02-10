@@ -6,9 +6,11 @@ from sparc.logging import logging
 logger = logging.getLogger(__name__)
 api = component.getUtility(mellon_api.IFlaskRestApiApplication)
 
-endpoint = '/secrets'
-logger.debug("registering {} api resource route".format(endpoint))
-@api.route(endpoint)
+ns_secrets = api.namespace('secrets', description="View and update Mellon Secret workflow information")
+
+route = '/'
+logger.debug("registering {}{} api resource route".format(ns_secrets.name,route))
+@ns_secrets.route(route)
 class Secrets(Resource):
     def get(self):
         return {'hello': 'world'}

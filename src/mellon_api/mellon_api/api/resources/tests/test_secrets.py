@@ -8,8 +8,8 @@ class MellonApiwargsTestCase(unittest.TestCase):
     layer = testing.MELLON_API_SA_EXECUTED_LAYER
     
     def setUp(self):
-        from ..secrets import endpoint
-        self.endpoint = endpoint
+        from ..secrets import ns_secrets, route
+        self.endpoint = "{}{}".format(ns_secrets.name, route)
     
     def test_secret(self):
         pass

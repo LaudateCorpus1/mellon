@@ -1,4 +1,4 @@
 #Flask configuration
-# Key value pairs passed into the Flask application server
-flask:
- key_1: value_1
+Flask:
+ settings: # Key value pairs passed into the Flask application server
+ 	key_1: value_1

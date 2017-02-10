@@ -65,8 +65,7 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
             if isinstance(self.config['ZCMLConfiguration'], dict):
                 self.config['ZCMLConfiguration'] = [self.config['ZCMLConfiguration']]
             self.config['ZCMLConfiguration'].append({'package': 'mellon.reporters.logger'})
-        self.app = create_and_register_app(self.config, self.verbose, self.debug)
-        self.app.configure()
+        self.init_mellon_app()
 
     def tearDown(self):
         reset_report() #added for convenience only...extender's would still need to register the memory reporter zcml
@@ -84,6 +83,10 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
         """Since the Mellon app does this for us, we need to pass
         """
         pass
+    
+    def init_mellon_app(self):
+        self.app = create_and_register_app(self.config, self.verbose, self.debug)
+        self.app.configure()
         
 MELLON_RUNTIME_LAYER = MellonApplicationRuntimeLayer(mellon)
     
