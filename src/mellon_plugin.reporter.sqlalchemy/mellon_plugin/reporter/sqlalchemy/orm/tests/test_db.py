@@ -5,19 +5,25 @@ from sparc.testing.fixture import test_suite_mixin
 
 from mellon.reporters.memory.memory import report as memory_report
 from mellon.sniffers.test.test import reset_test_sniffer
-from ..testing import MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
+from ..testing import MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
 from .. import models
 from zope import event
 import mellon
 
+from mellon.reporters.memory.memory import reset_report
+
 class MellonOrmReporterTestCase(unittest.TestCase):
-    layer = MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
+    layer = MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
     
     def setUp(self):
-        self.layer.session.begin_nested()
+        #self.layer.session.begin_nested()
+        self.layer.app.go()
+        self.layer.session.flush()
     
     def tearDown(self):
         self.layer.session.rollback()
+        reset_report()
+        reset_test_sniffer()
     
     def test_reporter(self):
         # now check orm
@@ -53,7 +59,7 @@ class MellonOrmReporterTestCase(unittest.TestCase):
         
 
 class test_suite(test_suite_mixin):
-    layer = MELLON_SA_ORM_REPORTER_EXECUTED_LAYER
+    layer = MELLON_SA_ORM_REPORTER_RUNTIME_LAYER
     package = 'mellon_plugin.reporter.sqlalchemy.orm'
     module = 'db'
     
