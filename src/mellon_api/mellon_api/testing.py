@@ -26,7 +26,7 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
     
     def setUp(self, config=None):
         mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
-        super(MellonApiRuntimeLayer, self).setUp()
+        super(MellonApiRuntimeLayer, self).setUp(config=config)
         if not MellonApiRuntimeLayer.flask_app:
             register_flask_app()
             configure_flask_app()
