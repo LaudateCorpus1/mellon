@@ -1,0 +1,30 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_api">
+
+    <utility
+        name="mellon_api.preprocessors_default"
+        provides=".IFlaskRestApiPreprocessors"
+        component=".processors.preprocessors_default"
+        />
+    
+    <utility
+        name="mellon_api.postprocessors_default"
+        provides=".IFlaskRestApiPostprocessors"
+        component=".processors.postprocessors_default"
+        />
+
+    <utility
+        name="mellon_api.preprocessors_secret"
+        provides=".IFlaskRestApiPreprocessors"
+        component=".processors.preprocessors_secret"
+        />
+    
+    <utility
+        name="mellon_api.postprocessors_secret"
+        provides=".IFlaskRestApiPostprocessors"
+        component=".processors.postprocessors_secret"
+        />
+
+</configure>

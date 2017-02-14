@@ -1,7 +1,6 @@
+import os
 from zope import component
 from zope import interface
-#from flask import Flask, Blueprint
-#from flask_restplus import Api
 import flask
 from flask_restless import APIManager
 from sparc.configuration.container import application
@@ -36,6 +35,8 @@ def register_flask_app():
 def configure_flask_app():
     m = get_registered_app()
     config_settings = m['vgetter'].get('Flask', 'settings', default={})
+    if 'SECRET_KEY' not in config_settings:
+        config_settings['SECRET_KEY'] = os.urandom(24) # sign cookies (and other stuff)
     
     app = component.getUtility(mellon_api.IFlaskApplication)
     for k in config_settings:
@@ -43,15 +44,23 @@ def configure_flask_app():
             app.config[k] = config_settings[k]
     logger.debug('mellon_api.IFlaskApplication singleton configured with runtime settings from Mellon yaml config.')
 
-def get_api_endpoint_settings(endpoint):
+def get_api_endpoint_kwargs(endpoint):
     m = get_registered_app()
-    settings = m['vgetter'].get('FlaskRestless', 'settings', 'default', default={})
-    settings.update(m['vgetter'].get('FlaskRestless', 'settings', endpoint, default={}))
-    return settings
+    kwargs = m['vgetter'].get('FlaskRestless', 'settings', 'default', default={})
+    kwargs.update(m['vgetter'].get('FlaskRestless', 'settings', endpoint.lower(), default={}))
+    kwargs['preprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_'+endpoint.lower())
+    if not kwargs['preprocessors']:
+        kwargs['preprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_default')
+    kwargs['postprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_'+endpoint.lower())
+    if not kwargs['postprocessors']:
+        kwargs['postprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_default')
+    return kwargs
     
 
 def add_api_resources(api):
-    api.create_api(mellon_models.Secret, methods=['GET'], **get_api_endpoint_settings('Secret'))
+    api.create_api(mellon_models.Secret, 
+                   methods=['GET'],
+                   **get_api_endpoint_kwargs('Secret'))
 
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
@@ -64,10 +73,6 @@ def main():
     #create, register, and run the application
     register_flask_app()
     configure_flask_app()
-    #if args.debug:
-    #    app.logger.addHandler(handler)
-    #    #app.config['DEBUG'] = True
-    #    app.logger.setLevel(logging.DEBUG)
     component.getUtility(mellon_api.IFlaskApplication).run()
 
 if __name__ == '__main__':

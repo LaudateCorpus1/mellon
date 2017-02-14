@@ -5,5 +5,7 @@
 
     <include package="mellon" />
     <include package=".sa" />
+    
+    <include file="processors.zcml" />
 
 </configure>
