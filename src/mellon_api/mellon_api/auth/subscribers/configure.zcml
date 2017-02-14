@@ -4,6 +4,7 @@
     i18n_domain="mellon_api.auth">
     
     <subscriber handler=".add_preprocessor.inject_db_authentication" />
+    <subscriber handler=".create_auth_models.create_models" />
 
 
 </configure>
