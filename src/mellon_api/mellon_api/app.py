@@ -26,7 +26,10 @@ def register_flask_app():
     sm.registerUtility(app, mellon_api.IFlaskApplication) #hookable event
     logger.debug('new mellon_api.IFlaskApplication singleton registered')
     
-    api = APIManager(app, session=component.getUtility(ISASession))
+    api = APIManager(app, 
+                     session=component.getUtility(ISASession),
+                     preprocessors=component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_global'),
+                     postprocessors=component.getUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_global'))
     add_api_resources(api)
     interface.alsoProvides(api, mellon_api.IFlaskRestApiApplication)
     sm.registerUtility(api, mellon_api.IFlaskRestApiApplication) #hookable event
@@ -48,12 +51,8 @@ def get_api_endpoint_kwargs(endpoint):
     m = get_registered_app()
     kwargs = m['vgetter'].get('FlaskRestless', 'settings', 'default', default={})
     kwargs.update(m['vgetter'].get('FlaskRestless', 'settings', endpoint.lower(), default={}))
-    kwargs['preprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_'+endpoint.lower())
-    if not kwargs['preprocessors']:
-        kwargs['preprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_default')
-    kwargs['postprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_'+endpoint.lower())
-    if not kwargs['postprocessors']:
-        kwargs['postprocessors'] = component.getUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_default')
+    kwargs['preprocessors'] = component.queryUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_'+endpoint.lower())
+    kwargs['postprocessors'] = component.queryUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_'+endpoint.lower())
     return kwargs
     
 
