@@ -19,3 +19,6 @@ class IORMUserPasswordAuthentication(IORMModel):
     principal_id = interface.Attribute("Integer related principal token")
 class ISAUserPasswordAuthentication(ISAModel, IORMUserPasswordAuthentication):
     """A SA ORM UserPasswordAuthentication"""
+
+class ICryptContext(interface.Interface):
+    """Marker for a passlib.context.CryptContext object"""

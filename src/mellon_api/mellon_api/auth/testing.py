@@ -5,6 +5,10 @@ from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
 class MellonApiAuthRuntimeLayer(MellonApiRuntimeLayer):
+    
+    def add_user_auth(self, username, password):
+        pass
+    
     def setUp(self, config=None):
         _config = \
             {

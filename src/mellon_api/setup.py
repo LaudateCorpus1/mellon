@@ -42,7 +42,8 @@ setup(name='mellon_api',
           'sparc.configuration',
           'sparc.logging',
           'flask',
-          'flask-restless'
+          'flask-restless',
+          'passlib'
       ],
       tests_require=[
       ],

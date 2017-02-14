@@ -4,5 +4,15 @@
     i18n_domain="mellon_api.auth">
 
     <include package=".subscribers" />
+    
+    <class class="passlib.context.CryptContext">
+      <implements interface=".ICryptContext" />
+    </class>
+    
+    <utility
+        name="mellon_api.auth.user_password_crypt_context"
+        provides=".ICryptContext"
+        component=".crypt.user_password_crypt_context"
+        />
 
 </configure>
