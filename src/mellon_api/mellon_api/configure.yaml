@@ -2,3 +2,11 @@
 Flask:
  settings: # Key value pairs passed into the Flask application server
  	key_1: value_1
+
+#Flask Restless configuration
+FlaskRestless
+ settings: #optional settings segment
+  default: #optional default segment
+   setting_1: value_1 # some default config setting applied to all appi endpoints
+  resource_1: #api resource specific settings.  Should match SQLAlchemy model name for resource
+   setting_1: value_1 # this setting would only apply to the endpoint_1 resource

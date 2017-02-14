@@ -16,7 +16,7 @@ def create_and_register_sa_utils(app, event):
     sm = component.getSiteManager()
     engine = sm.queryUtility(ISAEngine)
     if not engine:
-        engine = db.create_engine()
+        engine = db.get_engine()
         interface.alsoProvides(engine, ISAEngine)
         sm.registerUtility(engine, ISAEngine)
         logger.debug("registered ISAEngine based on mellon_api yaml config for SQLAlchemyORMReporter key")

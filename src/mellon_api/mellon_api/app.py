@@ -1,12 +1,16 @@
 from zope import component
 from zope import interface
-from flask import Flask, Blueprint
-from flask_restplus import Api
+#from flask import Flask, Blueprint
+#from flask_restplus import Api
+import flask
+from flask_restless import APIManager
 from sparc.configuration.container import application
 import mellon
 import mellon_api
 from mellon import IMellonApplication
 from mellon.mellon import create_and_register_app, get_registered_app
+from mellon_plugin.reporter.sqlalchemy.orm import models as mellon_models
+from .sa import ISASession
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
@@ -18,19 +22,16 @@ Mellon Restful API server.
 def register_flask_app():
     sm = component.getSiteManager()
     
-    blueprint = Blueprint('mellon_api', __name__, url_prefix='/api')
-    api = Api(version='1.0', title='Mellon API',
-          description='Mellon ORM workflow API.')
-    api.init_app(blueprint)
-    interface.alsoProvides(api, mellon_api.IFlaskRestApiApplication)
-    sm.registerUtility(api, mellon_api.IFlaskRestApiApplication) #hookable event
-    logger.debug('new mellon_api.IFlaskRestApiApplication singleton registered')
-
-    app = Flask('mellon_api')
-    app.register_blueprint(blueprint)
+    app = flask.Flask('mellon_api')
     interface.alsoProvides(app, mellon_api.IFlaskApplication)
     sm.registerUtility(app, mellon_api.IFlaskApplication) #hookable event
     logger.debug('new mellon_api.IFlaskApplication singleton registered')
+    
+    api = APIManager(app, session=component.getUtility(ISASession))
+    add_api_resources(api)
+    interface.alsoProvides(api, mellon_api.IFlaskRestApiApplication)
+    sm.registerUtility(api, mellon_api.IFlaskRestApiApplication) #hookable event
+    logger.debug('new mellon_api.IFlaskRestApiApplication singleton registered')
 
 def configure_flask_app():
     m = get_registered_app()
@@ -41,6 +42,16 @@ def configure_flask_app():
         if k not in app.config:
             app.config[k] = config_settings[k]
     logger.debug('mellon_api.IFlaskApplication singleton configured with runtime settings from Mellon yaml config.')
+
+def get_api_endpoint_settings(endpoint):
+    m = get_registered_app()
+    settings = m['vgetter'].get('FlaskRestless', 'settings', 'default', default={})
+    settings.update(m['vgetter'].get('FlaskRestless', 'settings', endpoint, default={}))
+    return settings
+    
+
+def add_api_resources(api):
+    api.create_api(mellon_models.Secret, methods=['GET'], **get_api_endpoint_settings('Secret'))
 
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()

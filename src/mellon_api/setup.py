@@ -42,7 +42,7 @@ setup(name='mellon_api',
           'sparc.configuration',
           'sparc.logging',
           'flask',
-          'flask-restplus'
+          'flask-restless'
       ],
       tests_require=[
       ],

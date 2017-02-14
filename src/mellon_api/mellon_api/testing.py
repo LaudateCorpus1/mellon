@@ -1,8 +1,10 @@
 from zope import component
+import json
 #from multiprocessing import Process
 from mellon_plugin.reporter.sqlalchemy.orm.testing import MellonOrmRuntimeReporterLayer
 import mellon
 import mellon_api
+import mellon_api.sa
 from mellon_api.app import register_flask_app, configure_flask_app
 
 from sparc.logging import logging
@@ -39,43 +41,23 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
         MellonApiRuntimeLayer.flask_app.config['TESTING'] = True
         #see http://flask.pocoo.org/docs/0.12/testing/
         self.client = MellonApiRuntimeLayer.flask_app.test_client()
+        
+        #flask-restless issues sessions commits...this is bad for testing rollback
+        session=component.getUtility(mellon_api.sa.ISASession)
+        self._session_commit = session.commit
+        session.commit = session.flush
     
     def tearDown(self):
+        session = component.queryUtility(mellon_api.sa.ISASession)
+        if session:
+            session.commit = self._session_commit # reset this to normal
+            session.rollback()
+            session.remove()
         #self.stopApi() #calls commit to Flask db session via event subscription (also removes scoped Flask session)
         super(MellonApiRuntimeLayer, self).tearDown()
-    """
-    app_process = None
-    app_server_name = 'localhost:5000'
-    app_url = 'http://' + app_server_name
-    
-    def startApi(self):
-        if not self.app_process:
-            app = component.getUtility(mellon_api.IFlaskApplication)
-            app.config['TESTING'] = True
-            #app.config['DEBUG'] = self.debug
-            app.config['SERVER_NAME'] =  self.app_server_name
-            self.app_process = Process(target=app.run)
-            self.app_process.start()
-    
-    def stopApi(self):
-        if self.app_process:
-            self.app_process.terminate()
-            self.app_process.join()
-    """
 
+    def get_json(self, url_endpoint_request):
+        r = self.client.get(url_endpoint_request)
+        #import pdb;pdb.set_trace()
+        return json.loads(r.get_data(as_text=True))
 MELLON_API_RUNTIME_LAYER = MellonApiRuntimeLayer(mellon_api)
-
-
-class MellonApiExecutedLayer(MellonApiRuntimeLayer):
-    
-    def setUp(self):
-        super(MellonApiExecutedLayer, self).setUp()
-        self.create_full_model(count=75)
-        self.session.flush()
-        #self.startApi()
-    
-    def tearDown(self):
-        self.session.rollback()
-        super(MellonApiExecutedLayer, self).tearDown()
-
-MELLON_API_EXECUTED_LAYER = MellonApiExecutedLayer(mellon_api)

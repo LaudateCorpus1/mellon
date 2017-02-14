@@ -2,24 +2,30 @@ import os.path
 import unittest
 import zope.testrunner
 
-from mellon_api.sa import testing
+from mellon_api import testing
 
 class MellonApiwargsTestCase(unittest.TestCase):
-    layer = testing.MELLON_API_SA_EXECUTED_LAYER
+    layer = testing.MELLON_API_RUNTIME_LAYER
+    model_count = 75
     
     def setUp(self):
-        from ..secrets import ns_secrets, route
-        self.endpoint = "{}{}".format(ns_secrets.name, route)
+        self.endpoint = "/api/secrets"
+        self.layer.create_full_model(count=self.model_count)
+        self.layer.session.flush()
+    
+    def tearDown(self):
+        self.layer.session.rollback()
     
     def test_secret(self):
-        pass
+        json = self.layer.get_json(self.endpoint+'/secret_1')
+        self.assertEquals(json['name'], 'secret 1')
     
     def test_secret_collection(self):
-        r = self.layer.client.get(self.endpoint)
-        self.assertEquals(len(r.data), self.layer.model_count)
+        json = self.layer.get_json(self.endpoint+'?results_per_page='+str(self.model_count))
+        self.assertEquals(len(json['objects']), self.model_count)
     
 class test_suite(object):
-    layer = testing.MELLON_API_SA_EXECUTED_LAYER
+    layer = testing.MELLON_API_RUNTIME_LAYER
     
     def __new__(cls):
         suite = unittest.TestSuite()
