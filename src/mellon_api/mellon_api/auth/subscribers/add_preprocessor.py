@@ -1,7 +1,7 @@
 from zope import component
 from zope.interface.interfaces import IRegistrationEvent
 import mellon_api
-from ..auth import auth_func
+from ..auth import api_authentication_preprocessor
     
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ def _inject_auth_func(method):
                         name=u"mellon_api.preprocessors_global")
     if method not in preprocessors:
         preprocessors[method] = []
-    preprocessors[method].insert(0, auth_func)
+    preprocessors[method].insert(0, api_authentication_preprocessor)
 
 @component.adapter(mellon_api.IFlaskApplication, IRegistrationEvent)
 def inject_db_authentication(app, event):

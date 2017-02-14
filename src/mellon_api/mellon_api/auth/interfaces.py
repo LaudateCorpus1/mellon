@@ -1,8 +1,5 @@
 from zope import interface
-
 from mellon_plugin.reporter.sqlalchemy.orm import IORMModel, ISAModel
-
-
 
 # PRINCIPAL
 class IORMPrincipal(IORMModel):
@@ -22,3 +19,8 @@ class ISAUserPasswordAuthentication(ISAModel, IORMUserPasswordAuthentication):
 
 class ICryptContext(interface.Interface):
     """Marker for a passlib.context.CryptContext object"""
+
+class IAuthenticationProvider(interface.Interface):
+    """Provides a mechanism to authenticate"""
+    def __call__():
+        """Raises flask_restless.ProcessingException on authentication failure"""

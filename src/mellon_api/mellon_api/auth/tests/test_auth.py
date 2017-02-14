@@ -4,7 +4,7 @@ import zope.testrunner
 
 from zope import component
 import mellon_api
-from ..auth import auth_func
+from ..auth import api_authentication_preprocessor
 from ..testing import MELLON_API_AUTH_RUNTIME_LAYER
 
 class MellonApiAuthTestCase(unittest.TestCase):
@@ -21,7 +21,7 @@ class MellonApiAuthTestCase(unittest.TestCase):
     
     def test_preprocessor_injection(self):
         pp = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_global')
-        self.assertEquals(pp['GET_SINGLE'][0], auth_func)
+        self.assertEquals(pp['GET_SINGLE'][0], api_authentication_preprocessor)
     
     
 class test_suite(object):

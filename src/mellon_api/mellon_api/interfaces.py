@@ -3,6 +3,9 @@ from zope import interface
 class IFlaskApplication(interface.Interface):
     """Marker for Flask application singleton"""
 
+class IFlaskRequest(interface.Interface):
+    """Marker for a Flask request object"""
+
 class IFlaskRestApiApplication(interface.Interface):
     """Marker for Flask Rest api singleton"""
 
