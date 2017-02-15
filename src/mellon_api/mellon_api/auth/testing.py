@@ -1,17 +1,10 @@
 from ..testing import MellonApiRuntimeLayer
 import mellon_api.auth
 
-from zope import component
-from . import models
-from . import ICryptContext
-
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
 class MellonApiAuthRuntimeLayer(MellonApiRuntimeLayer):
-    
-    def add_user_auth(self, username, password):
-        pass
     
     def setUp(self, config=None):
         _config = \

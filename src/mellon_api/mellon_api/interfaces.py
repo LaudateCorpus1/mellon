@@ -4,7 +4,8 @@ class IFlaskApplication(interface.Interface):
     """Marker for Flask application singleton"""
 
 class IFlaskRequest(interface.Interface):
-    """Marker for a Flask request object"""
+    """Flask request object"""
+    request = interface.Attribute("A Flask request object")
 
 class IFlaskRestApiApplication(interface.Interface):
     """Marker for Flask Rest api singleton"""
