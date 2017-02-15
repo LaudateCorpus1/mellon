@@ -23,6 +23,9 @@ class MellonApiAuthTestCase(unittest.TestCase):
         pp = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_global')
         self.assertEquals(pp['GET_SINGLE'][0], api_authentication_preprocessor)
     
+    def test_basic_auth_provider(self):
+        pass
+    
     
 class test_suite(object):
     layer = MELLON_API_AUTH_RUNTIME_LAYER

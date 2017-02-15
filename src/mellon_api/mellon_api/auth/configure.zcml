@@ -9,10 +9,22 @@
       <implements interface=".ICryptContext" />
     </class>
     
+    <subscriber
+        provides=".IAuthenticationProvider"
+        for="..IFlaskRequest"
+        factory=".auth.BasicAuth"
+        />
+    
     <utility
         name="mellon_api.auth.user_password_crypt_context"
         provides=".ICryptContext"
         component=".crypt.user_password_crypt_context"
+        />
+    
+    <adapter
+        provides=".IUserPasswordAuthenticationManager"
+        for="..sa.ISASession"
+        factory=".password.UserPasswordAuthenticationManager"
         />
 
 </configure>

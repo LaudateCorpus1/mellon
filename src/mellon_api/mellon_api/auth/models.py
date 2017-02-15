@@ -13,7 +13,7 @@ class Principal(Base):
 class UserPasswordAuthentication(Base):
     __tablename__ = 'user_password_authentication'
     username = sqlalchemy.Column(sqlalchemy.Unicode, nullable=False, primary_key=True)
-    password_crypt = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    password_crypt = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     principal_id = \
                 sqlalchemy.Column(sqlalchemy.Integer, 
                     sqlalchemy.ForeignKey(\
