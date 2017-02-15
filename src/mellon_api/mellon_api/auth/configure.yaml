@@ -1,0 +1,4 @@
+#MellonApiAuth
+MellonApiAuth:
+ token:
+  lifespan: 86400 #optional, token lifetime in seconds

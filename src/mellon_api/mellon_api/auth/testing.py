@@ -6,9 +6,11 @@ logger = logging.getLogger(__name__)
 
 class MellonApiAuthRuntimeLayer(MellonApiRuntimeLayer):
     
+    token_lifespan = 2
+    
     def setUp(self, config=None):
         _config = \
-            {
+            {'MellonApiAuth':{'token':{'lifespan': self.token_lifespan}},
              'ZCMLConfiguration':
                 [
                     {'package':'mellon.sniffers.test'},

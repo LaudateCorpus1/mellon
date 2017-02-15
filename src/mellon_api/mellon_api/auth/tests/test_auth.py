@@ -2,6 +2,8 @@ import os.path
 import unittest
 import zope.testrunner
 
+import time
+import json
 from zope import component
 import mellon_api
 from ..auth import api_authentication_preprocessor
@@ -30,6 +32,11 @@ class MellonApiAuthTestCase(unittest.TestCase):
         self.layer.session.rollback()
         self.session.rollback()
     
+    def login(self, username, password):
+        r = self.layer.client.post('/api/login', data={'username': username,
+                                             'password': password})
+        return json.loads(r.get_data(as_text=True))['token'] if r.status_code == 200 else None
+    
     def test_preprocessor_injection(self):
         pp = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_global')
         self.assertEquals(pp['GET_SINGLE'][0], api_authentication_preprocessor)
@@ -52,8 +59,24 @@ class MellonApiAuthTestCase(unittest.TestCase):
         basicauth = ('user1', 'invalid_password')
         r = self.layer.get_response('/api/secrets', basicauth=basicauth)
         self.assertEqual(r.status_code, 401)
+
+    def test_token_login(self):
+        self.manager.create('user1', 'password1')
+        token = self.login('user1', 'password1')
+        self.assertIsNotNone(token)
     
-    
+    def test_token_resource_access(self):
+        self.manager.create('user1', 'password1')
+        token = self.login('user1', 'password1')
+        r = self.layer.get_response('/api/secrets', basicauth=(token,''))
+        self.assertEqual(r.status_code, 200)
+        time.sleep(self.layer.token_lifespan+1)
+        r = self.layer.get_response('/api/secrets', basicauth=(token,''))
+        self.assertEqual(r.status_code, 401)
+        r = self.layer.get_response('/api/secrets', basicauth=('bad_signature',''))
+        self.assertEqual(r.status_code, 401)
+        
+        
 class test_suite(object):
     layer = MELLON_API_AUTH_RUNTIME_LAYER
     

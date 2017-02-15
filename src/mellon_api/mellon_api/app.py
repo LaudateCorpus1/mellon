@@ -40,11 +40,12 @@ def configure_flask_app():
     config_settings = m['vgetter'].get('Flask', 'settings', default={})
     if 'SECRET_KEY' not in config_settings:
         config_settings['SECRET_KEY'] = os.urandom(24) # sign cookies (and other stuff)
+    else:
+        config_settings['SECRET_KEY'] = bytes(config_settings['SECRET_KEY'], encoding='latin-1')
     
     app = component.getUtility(mellon_api.IFlaskApplication)
     for k in config_settings:
-        if k not in app.config:
-            app.config[k] = config_settings[k]
+        app.config[k] = config_settings[k]
     logger.debug('mellon_api.IFlaskApplication singleton configured with runtime settings from Mellon yaml config.')
 
 def get_api_endpoint_kwargs(endpoint):

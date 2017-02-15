@@ -5,6 +5,7 @@
     
     <subscriber handler=".add_preprocessor.inject_db_authentication" />
     <subscriber handler=".create_auth_models.create_models" />
+    <subscriber handler=".add_login_endpoints.add_views" />
 
 
 </configure>

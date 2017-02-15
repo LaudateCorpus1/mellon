@@ -15,6 +15,12 @@
         factory=".auth.BasicAuth"
         />
     
+    <subscriber
+        provides=".IAuthenticationProvider"
+        for="..IFlaskRequest"
+        factory=".auth.TokenAuth"
+        />
+    
     <utility
         name="mellon_api.auth.user_password_crypt_context"
         provides=".ICryptContext"
