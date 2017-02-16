@@ -35,7 +35,9 @@ setup(name='mellon_gui',
       zip_safe=False,
       install_requires=[
           'setuptools',
+          'zc.buildout',
           'sparc.configuration',
+          'sparc.utils',
           'mellon',
           'mellon_api'
       ],
@@ -43,5 +45,6 @@ setup(name='mellon_gui',
       ],
       entry_points={
           'console_scripts':['mellon_gui=mellon_gui.app:main'],
+          'zc.buildout': ['ember = mellon_gui.recipes.ember:Ember']
           },
       )
