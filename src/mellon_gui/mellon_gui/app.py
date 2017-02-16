@@ -1,8 +1,10 @@
+import os
 from zope import component
 from sparc.configuration.container import application
 import mellon
 import mellon_api
 import mellon_gui
+from mellon.mellon import get_registered_app
 from mellon_api.app import create_and_register_app, register_flask_app, configure_flask_app
 
 DESCRIPTION="""\
@@ -18,6 +20,15 @@ def main():
     create_and_register_app(args.config_file, args.verbose, args.debug)
     component.getUtility(mellon.IMellonApplication).configure()
     #create, register, and run the application
+    m = get_registered_app() # the Mellon application
+    if 'Flask' not in m['config']:
+        m['config']['Flask'] = component.createObject(u"sparc.configuration.container", {'kwargs':{}})
+    if 'kwargs' not in m['config']['Flask']:
+        m['config']['Flask']['kwargs'] = component.createObject(u"sparc.configuration.container", {})
+    
+    static_path = os.path.join(os.path.dirname(mellon_gui.__file__),'ember','mellon','dist')
+    m['config']['Flask']['kwargs']['static_folder'] = static_path
+    
     register_flask_app()
     configure_flask_app()
     component.getUtility(mellon_api.IFlaskApplication).run()
