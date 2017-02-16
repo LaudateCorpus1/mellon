@@ -19,9 +19,11 @@ Mellon Restful API server.
 """
 
 def register_flask_app():
+    m = get_registered_app()
     sm = component.getSiteManager()
     
-    app = flask.Flask('mellon_api')
+    kwargs = m['vgetter'].get('Flask', 'kwargs', default={})
+    app = flask.Flask('mellon_api', **kwargs)
     interface.alsoProvides(app, mellon_api.IFlaskApplication)
     sm.registerUtility(app, mellon_api.IFlaskApplication) #hookable event
     logger.debug('new mellon_api.IFlaskApplication singleton registered')

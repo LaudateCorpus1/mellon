@@ -1,7 +1,9 @@
 #Flask configuration
 Flask:
  settings: # Key value pairs passed into the Flask application server
- 	key_1: value_1
+  key_1: value_1
+ kwargs: # kwargs passed into Flask app initialization
+  param_1: value_1
 
 #Flask Restless configuration
 FlaskRestless
