@@ -43,10 +43,16 @@ class Ember:
         ember_dir = os.path.join(buildout_dir,'src','mellon_gui','mellon_gui','ember','mellon')
         os.chdir(ember_dir)
         try:
+            #Install Ember framework
             logger.info("executing 'npm install' within ember project directory {}".format(ember_dir))
             subprocess.check_call(self.npm)
             logger.info("executing 'bower install' within ember project directory {}".format(ember_dir))
             subprocess.check_call(self.bower)
+            #Build ember distribution
+            _ember_env = options.get('environment', default='production')
+            self.ember = CommandLaunch('ember', ['build','--environment',_ember_env])
+            logger.info("executing 'ember build --environment {}' within ember project directory {}".format(_ember_env, ember_dir))
+            subprocess.check_call(self.ember)
         finally:
             os.chdir(buildout_dir)
         
