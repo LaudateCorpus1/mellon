@@ -1,4 +1,3 @@
-from zope import component
 from zope import interface
 
 from mellon.mellon import get_registered_app
