@@ -9,6 +9,7 @@ import mellon_api
 from mellon import IMellonApplication
 from mellon.mellon import create_and_register_app, get_registered_app
 from mellon_plugin.reporter.sqlalchemy.orm import models as mellon_models
+from mellon_plugin.reporter.sqlalchemy.orm.workflow import models as workflow_models
 from .sa import ISASession
 
 from sparc.logging import logging
@@ -61,7 +62,7 @@ def get_api_endpoint_kwargs(endpoint):
 
 def add_api_resources(api):
     api.create_api(mellon_models.Secret, 
-                   methods=['GET'],
+                   methods=['GET','PATCH'],
                    **get_api_endpoint_kwargs('Secret'))
 
 def main():

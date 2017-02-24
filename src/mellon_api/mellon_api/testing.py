@@ -27,7 +27,8 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
         configure_flask_app()
         self.flask_app = component.getUtility(mellon_api.IFlaskApplication)
         self.rest_api = component.getUtility(mellon_api.IFlaskRestApiApplication)
-        self.flask_app.logger.disabled = True
+        if not self.debug:
+            self.flask_app.logger.disabled = True
         self.flask_app.config['TESTING'] = True
         #see http://flask.pocoo.org/docs/0.12/testing/
         self.client = self.flask_app.test_client()
@@ -56,5 +57,6 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
             bts = bytes("{0}:{1}".format(username, password),encoding='latin-1')
             headers['Authorization'] = 'Basic ' + b64encode(bts).decode('latin-1')
         return self.client.get(url_endpoint_request, headers=headers)
+    
     
 MELLON_API_RUNTIME_LAYER = MellonApiRuntimeLayer(mellon_api)

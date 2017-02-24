@@ -8,7 +8,7 @@ import mellon_api
 from ..testing import MELLON_API_RUNTIME_LAYER
 
 
-class MellonApiwargsTestCase(unittest.TestCase):
+class MellonApiKwargsTestCase(unittest.TestCase):
     layer = MELLON_API_RUNTIME_LAYER
     
     def test_app(self):
@@ -22,7 +22,7 @@ class test_suite(test_suite_mixin):
     
     def __new__(cls):
         suite = super(test_suite, cls).__new__(cls)
-        suite.addTest(unittest.makeSuite(MellonApiwargsTestCase))
+        suite.addTest(unittest.makeSuite(MellonApiKwargsTestCase))
         return suite
 
 if __name__ == '__main__':
