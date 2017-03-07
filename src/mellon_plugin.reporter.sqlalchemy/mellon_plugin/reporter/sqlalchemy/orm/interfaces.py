@@ -19,11 +19,18 @@ class ISAAuthorizationContext(ISAModel, IORMAuthorizationContext):
 
 # MELLON FILE
 class IORMMellonFile(IORMModel):
-    name = interface.Attribute("String locatable identity of file")
-    authorization_context_id = interface.Attribute("Valid IORMAuthorizationContext.id reference")
+    id = interface.Attribute("String locatable identity of file")
     
 class ISAMellonFile(ISAModel, IORMMellonFile):
     """A SA ORM mellon file"""
+
+# MELLON FILE ACCESS CONTEXT
+class IORMMellonFileAccessContext(IORMModel):
+    mellon_file_id = interface.Attribute("Valid IORMMellonFile.id reference")
+    authorization_context_id = interface.Attribute("Valid IORMAuthorizationContext.id reference")
+    
+class ISAMellonFileAccessContext(ISAModel, IORMMellonFileAccessContext):
+    """A SA ORM mellon file access context"""
 
 # SNIPPET
 class IORMSnippet(IORMModel):

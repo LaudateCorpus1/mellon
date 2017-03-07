@@ -29,6 +29,7 @@ class MellonOrmReporterTestCase(unittest.TestCase):
         # now check orm
         self.assertEquals(len(self.layer.session.query(models.AuthorizationContext).all()), 1)
         self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 2)
+        self.assertEquals(len(self.layer.session.query(models.MellonFileAccessContext).all()), 2)
         self.assertEquals(len(self.layer.session.query(models.Snippet).all()), 2)
         self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2)
         self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 2)
@@ -44,7 +45,7 @@ class MellonOrmReporterTestCase(unittest.TestCase):
         self.assertTrue(_tripper) #make sure loop ran ok
         self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2) #no new secrets.
         
-        #now we'll just verify that the events we indeed ok by wiping the DB and trying again
+        #now we'll just verify that the events were indeed ok by wiping the DB and trying again
         for secret_discovery_date in self.layer.session.query(models.SecretDiscoveryDate).all():
             self.layer.session.delete(secret_discovery_date)
         self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 0)

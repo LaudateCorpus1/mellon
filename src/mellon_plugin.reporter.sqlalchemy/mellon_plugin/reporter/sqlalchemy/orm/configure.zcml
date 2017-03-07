@@ -3,11 +3,18 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon_plugin.reporter.sqlalchemy.orm">
 
+    <include package=".query" />
+    
     <subscriber handler=".db.orm_reporter_for_secret" />
     
     <utility
         name="mellon_plugin.reporter.sqlalchemy.orm.model"
         component=".models.ormModelFromMellonProviderFactory"
+        />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.mellon_file_access_context"
+        component=".models.mellonFileAccessContextFactory"
         />
 
 </configure>

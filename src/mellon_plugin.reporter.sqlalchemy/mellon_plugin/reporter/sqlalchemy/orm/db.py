@@ -65,15 +65,24 @@ def orm_reporter_for_secret(event):
             session.flush()
     #MellonFile
     mfile_model = session.query(models.MellonFile).\
-        filter(
-            models.MellonFile.name == str(mfile),
-            models.MellonFile.authorization_context_id == auth_context_model.id)\
-        .first()
+        filter(models.MellonFile.id == str(mfile)).first()
     if not mfile_model:
         mfile_model = component.createObject(\
                     u"mellon_plugin.reporter.sqlalchemy.orm.model", mfile)
-        mfile_model.authorization_context_id = auth_context_model.id
         session.add(mfile_model)
+        session.flush()
+    #MellonFileAccessContext
+    access_context = session.query(models.MellonFileAccessContext).\
+        filter(
+               models.MellonFileAccessContext.mellon_file_id == mfile_model.id,
+               models.MellonFileAccessContext.authorization_context_id == auth_context_model.id
+               ).first()
+    if not access_context:
+        access_context = component.createObject(
+                    u"mellon_plugin.reporter.sqlalchemy.orm.mellon_file_access_context",
+                    mellon_file_id=mfile_model.id,
+                    authorization_context_id=auth_context_model.id)
+        session.add(access_context)
         session.flush()
     #Snippet
     snippet_model = session.query(models.Snippet).\
@@ -89,7 +98,6 @@ def orm_reporter_for_secret(event):
         session.add(snippet_model)
         session.flush() #assigns the snippet Id
     #Secret
-    #import pdb;pdb.set_trace()
     secret_model = session.query(models.Secret).\
                     filter(models.Secret.id == secret.get_id(),
                            models.Secret.snippet_id == snippet_model.id).first()
@@ -98,7 +106,7 @@ def orm_reporter_for_secret(event):
                     u"mellon_plugin.reporter.sqlalchemy.orm.model", 
                     secret,
                     secret_snippet_id=snippet_model.id)
-        secret_model.snippet_id = snippet_model.id
+        secret_model.initial_discovery_datetime = now
         session.add(secret_model)
         session.flush()
     #DiscoveryDate

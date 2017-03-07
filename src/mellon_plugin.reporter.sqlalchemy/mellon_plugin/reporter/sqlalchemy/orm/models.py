@@ -39,9 +39,7 @@ class OrmModelFromMellonProvider(object):
             obj.description = mellon_provider.description
         elif mellon.IMellonFile.providedBy(mellon_provider):
             obj = MellonFile()
-            obj.name = str(mellon_provider)
-            if mellon.IAuthorizationContext(mellon_provider).identity:
-                obj.authorization_context_id = mellon.IAuthorizationContext(mellon_provider).identity
+            obj.id = str(mellon_provider)
         elif mellon.ISnippet.providedBy(mellon_provider):
             obj = Snippet()
             obj.name = mellon_provider.__name__
@@ -74,20 +72,38 @@ class AuthorizationContext(Base):
 @interface.implementer(interfaces.ISAMellonFile)
 class MellonFile(Base):
     __tablename__ = 'mellon_files'
+    #__table_args__ = \
+    #                (sqlalchemy.UniqueConstraint(\
+    #                        'name','authorization_context_id', name='file_auth_un'),
+    #                 )
+    #id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True)
+    id = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True, primary_key=True)
+    #authorization_context_id = \
+    #            sqlalchemy.Column(sqlalchemy.String, 
+    #                sqlalchemy.ForeignKey(\
+    #                                AuthorizationContext.__tablename__ + '.id'),
+    #                nullable=False, default='') #not all files will have a security context
+    #authorization_context = orm.relationship('AuthorizationContext', 
+    #                                         back_populates='mellon_files')
+    #snippets = orm.relationship('Snippet', back_populates='mellon_file')
+
+@interface.implementer(interfaces.ISAMellonFileAccessContext)
+class MellonFileAccessContext(Base):
+    __tablename__ = 'mellon_file_access_contexts'
     __table_args__ = \
-                    (sqlalchemy.UniqueConstraint(\
-                            'name','authorization_context_id', name='file_auth_un'),
+                    (sqlalchemy.PrimaryKeyConstraint(\
+                            'mellon_file_id','authorization_context_id', 
+                            name='mellon_file_access_context_pk'),
                      )
-    id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True)
-    name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    mellon_file_id = sqlalchemy.Column(sqlalchemy.Integer, 
+                    sqlalchemy.ForeignKey(MellonFile.__tablename__ + '.id'),
+                    nullable=False)
     authorization_context_id = \
                 sqlalchemy.Column(sqlalchemy.String, 
                     sqlalchemy.ForeignKey(\
                                     AuthorizationContext.__tablename__ + '.id'),
-                    nullable=False, default='') #not all files will have a security context
-    #authorization_context = orm.relationship('AuthorizationContext', 
-    #                                         back_populates='mellon_files')
-    #snippets = orm.relationship('Snippet', back_populates='mellon_file')
+                    nullable=False)
+mellonFileAccessContextFactory = Factory(MellonFileAccessContext)
 
 @interface.implementer(interfaces.ISASnippet)
 class Snippet(Base):
@@ -114,6 +130,7 @@ class Secret(Base):
     snippet_id = sqlalchemy.Column(sqlalchemy.String, 
                     sqlalchemy.ForeignKey(Snippet.__tablename__ + '.id'),
                     nullable=False)
+    initial_discovery_datetime = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
     #snippet = orm.relationship('Snippet', back_populates='secrets')
     #secret_discovery_dates = orm.relationship('SecretDiscoveryDate', back_populates='secret', cascade="all, delete, delete-orphan")
 

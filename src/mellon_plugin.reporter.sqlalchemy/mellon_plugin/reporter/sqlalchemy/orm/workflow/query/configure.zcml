@@ -1,0 +1,21 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_plugin.reporter.sqlalchemy.orm.workflow">
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.workflow.core_related_models"
+        component=".query.ORMRelatedModelsWorkflowCoreFactory"
+        />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.workflow.auth_context_related_models"
+        component=".query.ORMRelatedModelsWorkflowAuthorizationContextFactory"
+        />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.workflow.all_related_models"
+        component=".query.ORMRelatedModelsWorkflowAllFactory"
+        />
+
+</configure>
