@@ -1,0 +1,33 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_plugin.reporter.sqlalchemy.orm">
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression"
+        component=".filter.SAModelFilterExpressionFactory"
+        />
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression_group"
+        component=".filter.SAModelFilterExpressionGroupFactory"
+        />
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression_group_from_container"
+        component=".filter.SAModelFilterExpressionGroupFromContainerFactory"
+        />
+    
+    <adapter
+        provides=".ISAExpression"
+        for=".ISAModelFilterExpression"
+        factory=".filter.SAExpressionFromSAModelFilterExpression"
+        />
+    
+    <adapter
+        provides=".ISAConjunction"
+        for=".ISAModelFilterExpressionGroup"
+        factory=".filter.SAConjunctionFromSAModelFilterExpressionGroup"
+        />
+
+</configure>

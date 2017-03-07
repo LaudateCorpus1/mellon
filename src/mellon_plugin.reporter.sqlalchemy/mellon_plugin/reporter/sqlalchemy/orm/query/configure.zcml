@@ -1,0 +1,44 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_plugin.reporter.sqlalchemy.orm">
+    
+    <include file="filter.zcml" />
+    <include file="result.zcml" />
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.orm_related_models"
+        component=".query.ORMRelatedModelsFactory"
+        />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models"
+        component=".query.ORMRelatedModelsCoreFactory"
+        />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.mellon_auth_context_related_models"
+        component=".query.ORMRelatedModelsAuthContextFactory"
+        />
+    
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.mellon_all_related_models"
+        component=".query.ORMRelatedModelsAllFactory"
+        />
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.instrumented_attribute"
+        component=".query.SAInstrumentedAttributeFromDottedStringFactory"
+        />
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.query"
+        component=".query.SAQueryFactory"
+        />
+
+    <utility
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query"
+        component=".query.SAOuterJoinQueryFactory"
+        />
+
+</configure>

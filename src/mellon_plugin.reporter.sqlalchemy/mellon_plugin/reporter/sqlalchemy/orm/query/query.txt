@@ -1,0 +1,174 @@
+ORM Query Helpers
+==================
+
+It is a common activity to query Mellon ORM data.  this package contains some
+components that streamline common query operations.  These operations are based
+on SQL LEFT OUTER JOIN logic.  The components allow for proper manipulation
+of the left-most table (all of the left-most table contents is available for
+the query, while tables further right will be restricted based on bridged
+foreign key relationships).
+
+To help understand, consider the following list as related tables
+
+a, b, c, d, e
+
+assume that b has a foreign key to a, c has a foreign key to be, and so forth...
+searching for a's based on filters related to b-e is straight forward
+
+SELECT a,b,c,d,e FROM a LEFT OUTER JOIN b LEFT OUTER JOIN c ... WHERE b.1 != 'something'
+
+But if you wanted to search for c's based on filters in other tables, then
+
+SELECT c,b,a,d,e FROM c LEFT OUTER JOIN b ... WHERE a.1 == 'something'
+
+The components in this package help to streamline this kind of activity.
+
+
+Model Relationship Stack
+-------------------------
+To effectively query the Mellon ORM data, first ORM table relationships
+must be defined.  This identifies the one->many->many->... for each table.
+The base orm package contains the following tables:
+
+ - authorization_contexts       (ORM Model: AuthorizationContext)
+ - mellon_files                 (ORM Model: MellonFile)
+ - mellon_file_access_contexts  (ORM Model: MellonFileAccessContext)
+ - snippets                     (ORM Model: Snippet)
+ - secrets                      (ORM Model: Secret)
+ - secret_discovery_dates       (ORM Model: SecretDiscoveryDate)
+
+Each of these tables contains a foreign key relationship with at least one
+other table in the list (see models.py for more details).  This top-down
+order shown above is important as tables have direct or indirect relationships
+with all tables listed higher.
+
+The query package provides the IORMRelatedModels interface to help manage this
+structure via the ORM models.  Mostly this is important to understand if you
+plan to add extra ORM models on top of this list and then need to be able to
+search that data in the method described above (e.g. LEFT OUTER JOIN).
+
+an empty IORMRelatedModels provider can be created via a component factory
+>>> from zope import component
+>>> rel_manager = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.orm_related_models")
+
+This relationship manager is empty
+>>> rel_manager.models()
+()
+
+We can add a couple relationships easy enough.  injecting models into the
+manager will prepend them by default
+>>> from mellon_plugin.reporter.sqlalchemy.orm import models
+>>> rel_manager.inject(models.Snippet)
+>>> rel_manager.inject(models.Secret, models.Snippet)
+>>> list(map(lambda x: x.__name__, rel_manager.models()))
+['Snippet', 'Secret']
+
+The rel_manager orders the top-down structure from above in left->right manor in
+the sequence returned by rel_manager.models().  We can inject to the
+front of the stack (again)
+>>> rel_manager.inject(models.MellonFile)
+>>> rel_manager.inject(models.MellonFileAccessContext)
+>>> rel_manager.inject(models.AuthorizationContext)
+
+Now looking at the relationship stack again
+>>> list(map(lambda x: x.__name__, rel_manager.models()))
+['AuthorizationContext', 'MellonFileAccessContext', 'MellonFile', 'Snippet', 'Secret']
+
+The package offers a few pre-made utilities for common stacks.
+
+A core stack
+>>> from mellon_plugin.reporter.sqlalchemy.orm.query import IORMRelatedModels
+>>> rel_manager = component.createObject( 
+... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
+>>> list(map(lambda x: x.__name__, rel_manager.models()))
+['MellonFile', 'Snippet', 'Secret']
+
+A Stack that includes the authorization context
+>>> rel_manager = component.createObject(
+... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_auth_context_related_models")
+>>> list(map(lambda x: x.__name__, rel_manager.models()))
+['AuthorizationContext', 'MellonFileAccessContext', 'MellonFile', 'Snippet', 'Secret']
+
+A full stack that includes the discovery dates
+>>> rel_manager = component.createObject(
+... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_all_related_models")
+>>> list(map(lambda x: x.__name__, rel_manager.models()))
+['AuthorizationContext', 'MellonFileAccessContext', 'MellonFile', 'Snippet', 'Secret', 'SecretDiscoveryDate']
+
+
+Model Query & Result Utility
+-----------------------------
+Querying the data involves 2 important pieces of information.  The first is the
+Model relationship stack as described above.  The second is to identify which
+Model will be left-most, e.g. which table would you like to insure to get
+all values available to be filtered against.
+
+Let's consider a simple example with the core models MellonFile, Snippet, 
+and Secret.  Here's how you could get a SQLAlchemy query object that would
+return all Secrets and their related Snippet and File:
+
+first, get the core model stack
+>>> rel_manager = component.createObject(
+... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
+
+Now we can object the query object via a component factory.  q is a ISAQuery 
+provider, which means it is a SQLAlchemy Query object.
+>>> q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
+... 						models.Secret, rel_manager.models())
+
+Now that our query is prepared, we can execute it and examine the results.
+Result rows are returned as KeyedTuple objects.  Tuple entries will be ORM
+models in the context of this package.  This package provides a convenience 
+utility for ISAResultRowModel to extract model results from a row based on a 
+given interface.
+>>> from mellon_plugin.reporter.sqlalchemy.orm.query import ISAResultRowModel
+>>> rrm = component.getUtility(ISAResultRowModel)
+>>> from mellon_plugin.reporter.sqlalchemy.orm import ISAMellonFile
+>>> mellon_file = rrm.first(ISAMellonFile, q.first()) # get the first row entry that provides ISAMellonFile
+>>> ISAMellonFile.providedBy(mellon_file)
+True
+
+
+Model Filter
+-------------
+The entire purpose of building these components is to allow effective filtering
+of queried ORM models.  A recursive data structure  can be used as the basis
+for a query filter definition.  The structure follows this paradigm:
+
+{
+ 'conjunction': 'and',
+ 'expressions':
+    [
+     {'attribute':'model.field1', 'condition':'==', 'value':'value1'},
+     {'attribute':'model.field2', 'condition':'!=', 'value':'value2'},
+     {
+      'conjunction': 'or',
+      'expressions':
+          [
+           {'attribute':'model.field3', 'condition':'==', 'value':'value3'},
+           {'attribute':'model.field4', 'condition':'is null'}
+          ]
+     }
+    ]
+}
+
+WHERE model.field1 == 'value1' AND model.field2 != 'value2' AND (model.field1 == 'value3' OR model.field4 IS NULL)
+
+We'll start by creating a simple filter definition
+>>> filter = {
+...  'conjunction': 'and',
+...  'expressions':
+...      [{'attribute':'MellonFile.id', 'condition':'==', 'value':'some_file_name'}]
+... }
+
+
+To use this definition, we need to convert it into ISAModelFilterExpressionGroup
+provider.  We have a component factory that will do this for us
+>>> expression_group = component.createObject(
+... 		u"mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression_group_from_container", filter)
+
+We can adapt ISAModelFilterExpressionGroup into ISAConjunction, which is 
+ultimately what is passed into the SQLAlchemy query object's filter method
+>>> from mellon_plugin.reporter.sqlalchemy.orm.query import ISAConjunction
+>>> q.filter(ISAConjunction(expression_group)).all()
+[]
