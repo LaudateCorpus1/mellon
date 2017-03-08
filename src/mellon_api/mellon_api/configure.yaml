@@ -5,6 +5,10 @@ Flask:
  kwargs: # kwargs passed into Flask app initialization
   param_1: value_1
 
+ResourcePagination:
+ max_limit: 50 #upper bound on api request limit parameter 
+ default_limit: 20 #default api request limit, used if not available in request
+
 #Flask Restless configuration
 FlaskRestless
  settings: #optional settings segment

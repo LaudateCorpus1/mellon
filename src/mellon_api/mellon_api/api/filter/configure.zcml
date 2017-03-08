@@ -1,0 +1,12 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_api">
+
+    <adapter
+        provides="mellon_plugin.reporter.sqlalchemy.orm.query.ISAModelFilterExpressionGroup"
+        for=".IAPIRequestFilter"
+        factory=".filter.SAModelFilterExpressionGroupFromAPIRequestFilter"
+        />
+
+</configure>

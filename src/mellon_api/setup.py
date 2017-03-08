@@ -44,7 +44,8 @@ setup(name='mellon_api',
           'flask',
           'flask-restless',
           'passlib',
-          'itsdangerous'
+          'itsdangerous',
+          'marshmallow-jsonapi'
       ],
       tests_require=[
       ],

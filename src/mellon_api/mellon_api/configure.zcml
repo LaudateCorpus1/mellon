@@ -5,6 +5,7 @@
 
     <include package="sparc.configuration" />
     <include package="mellon" />
+    <include package=".api" />
     <include package=".sa" />
     
     <include file="processors.zcml" />
