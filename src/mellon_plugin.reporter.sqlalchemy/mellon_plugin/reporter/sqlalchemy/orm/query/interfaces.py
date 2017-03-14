@@ -2,15 +2,12 @@ from zope import interface
 from zope import schema
 
 class IORMRelatedModels(interface.Interface):
-    def models(self):
-        """Returns tuple of current sequence of models"""
-    def initialize(models):
-        """Re-initialize the models list with given sequence of IORMModel providers"""
-    def inject(model, related=None):
-        """Inject model into models list immediately after related.  If related
-         is not given, then model is prepended to top of stack.  ValueError 
-         raised if given related is not in models
-        """
+    def flattened(seed):
+        """Return non-circular sequence of IORMModel providers from seed starting point"""
+
+class IORMRelatedModelsAdder(IORMRelatedModels):
+    def add_sequence(sequence):
+        """Add sequence of related IORMModel providers into graph"""
 
 class ISAQuery(interface.Interface):
     """SQLAlchemy query object initialized with desired return items"""

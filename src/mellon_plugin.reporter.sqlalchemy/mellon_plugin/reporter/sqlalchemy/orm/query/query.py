@@ -7,38 +7,48 @@ from .. import db
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
-@interface.implementer(qry_ifaces.IORMRelatedModels)
-class ORMRelatedModels(object):
+@interface.implementer(qry_ifaces.IORMRelatedModelsAdder)
+class ORMRelatedModelsAdder(object):
     def __init__(self, models=None):
-        self._models = [] if not models else [m for m in models]
-    def models(self):
-        return tuple(self._models)
-    def initialize(self, models):
-        self._models = [m for m in models]
-    def inject(self, model, related=None):
-        if not related:
-            self._models.insert(0, model)
-            return
-        for i, m in enumerate(self._models):
-            if m == related:
-                self._models.insert(i+1, model)
-                return
-        raise ValueError("related not found in models")
-ORMRelatedModelsFactory = Factory(ORMRelatedModels)
+        self._models = {}
+        if models:
+            self.add_sequence(models)
+    def add_sequence(self, sequence):
+        for i, model in enumerate(sequence):
+            if model not in self._models:
+                self._models[model] = set()
+            #add left-side
+            if i:
+                self._models[model].add(sequence[i-1])
+            #add right-side
+            if i < len(sequence)-1:
+                self._models[model].add(sequence[i+1])
+            
+    def flattened(self, seed):
+        q = [seed]
+        flattened = []
+        while q:
+            model = q.pop(0)
+            if model not in flattened:
+                flattened.append(model)
+            for r in [r for r in self._models[model] if r not in flattened]:
+                q.append(r)
+        return tuple(flattened)
+ORMRelatedModelsAdderFactory = Factory(ORMRelatedModelsAdder)
 
 @interface.implementer(qry_ifaces.IORMRelatedModels)
-class ORMRelatedModelsCore(ORMRelatedModels):
-    def __init__(self):
-        super(ORMRelatedModelsCore, self).__init__([models.MellonFile,
+class ORMRelatedModelsCore(object):
+    def __new__(cls):
+        return ORMRelatedModelsAdder([models.MellonFile,
                                                     models.Snippet,
                                                     models.Secret
                                                     ])
 ORMRelatedModelsCoreFactory = Factory(ORMRelatedModelsCore)
 
 @interface.implementer(qry_ifaces.IORMRelatedModels)
-class ORMRelatedModelsAuthContext(ORMRelatedModels):
-    def __init__(self):
-        super(ORMRelatedModelsAuthContext, self).__init__([
+class ORMRelatedModelsAuthContext(object):
+    def __new__(cls):
+        return ORMRelatedModelsAdder([
                          models.AuthorizationContext,
                          models.MellonFileAccessContext,
                          models.MellonFile,
@@ -48,9 +58,9 @@ class ORMRelatedModelsAuthContext(ORMRelatedModels):
 ORMRelatedModelsAuthContextFactory = Factory(ORMRelatedModelsAuthContext)
 
 @interface.implementer(qry_ifaces.IORMRelatedModels)
-class ORMRelatedModelsAll(ORMRelatedModels):
-    def __init__(self):
-        super(ORMRelatedModelsAll, self).__init__([
+class ORMRelatedModelsAll(object):
+    def __new__(cls):
+        return ORMRelatedModelsAdder([
                          models.AuthorizationContext,
                          models.MellonFileAccessContext,
                          models.MellonFile,
@@ -86,11 +96,10 @@ SAQueryFactory = Factory(SAQuery)
 
 @interface.implementer(qry_ifaces.ISAOuterJoinQuery)
 class SAOuterJoinQuery(object):
-    def __new__(cls, left, models):
+    def __new__(cls, models):
         """Return ISAOuterJoinQuery provider based on related models
         
         args:
-            left: ISAModel considered as most left outer join
             models: sequence of ISAModel providers ordered left->right in terms
                     of required SQL query dependency structure.  
         """
@@ -98,14 +107,13 @@ class SAOuterJoinQuery(object):
         # models = [1,2,3,4,5]
         # left = 4
         # ordered = [4,3,2,1,5]
-        models = list(models)
-        ordered = [left] + models[0:models.index(left)][::-1] + models[models.index(left)+1:]
+        models = [m for m in models]
         
-        q = SAQuery(*ordered) # base query
-        for m in ordered[1:]:
+        q = SAQuery(*models) # base query
+        for m in models[1:]:
             q = q.outerjoin(m)
         interface.alsoProvides(q, qry_ifaces.ISAOuterJoinQuery)
-        logger.debug("ISAOuterJoinQuery provider inited with left assignment {} and sequenced joins {}".format(left, ordered[1:]))
+        logger.debug("ISAOuterJoinQuery provider inited with sequenced joins {}".format(models))
         return q
 SAOuterJoinQueryFactory = Factory(SAOuterJoinQuery)
 

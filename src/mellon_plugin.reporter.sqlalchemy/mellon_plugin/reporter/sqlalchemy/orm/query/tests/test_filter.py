@@ -87,7 +87,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.Secret, core_models.models())
+                    core_models.flattened(models.Secret))
         q = q.filter(ISAConjunction(eg1))
         self.assertEqual(q.count(), 1) #without filter, would have been 3
         self.assertEqual(q.first()[0].name, 'this is a found secret 1')
@@ -103,7 +103,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.Secret, core_models.models())
+                    core_models.flattened(models.Secret))
         self.assertEqual(q.filter(ISAConjunction(eg1)).count(), 3) 
     
     def test_filter_level_1_or_complex(self):
@@ -116,7 +116,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.MellonFile, core_models.models())
+                    core_models.flattened(models.MellonFile))
         self.assertEqual(q.filter(ISAConjunction(eg1)).count(), 12) #10 snippets from file 1 + 2 secrets from file 2
     
     def test_filter_level_1_and(self):
@@ -129,7 +129,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.Secret, core_models.models())
+                    core_models.flattened(models.Secret))
         self.assertEqual(q.filter(ISAConjunction(eg1)).count(), 0) 
     
     def test_filter_level_1_and_complex(self):
@@ -142,7 +142,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.MellonFile, core_models.models())
+                    core_models.flattened(models.MellonFile))
         self.assertEqual(q.filter(ISAConjunction(eg1)).count(), 8)
 
     def test_filter_level_2_and_or(self):
@@ -157,7 +157,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_auth_context_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.AuthorizationContext, core_models.models())
+                    core_models.flattened(models.AuthorizationContext))
         
         e21 = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression",
                     models.MellonFile.id, '==', 'mellon_file_1')
@@ -176,7 +176,7 @@ class MellonOrmFilterTestCase(unittest.TestCase):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_auth_context_related_models")
         q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.AuthorizationContext, core_models.models())
+                    core_models.flattened(models.AuthorizationContext))
         cont = {'conjunction': 'and',
                 'expressions':
                     [{'attribute':'Secret.id', 'condition':'is not null'},

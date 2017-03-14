@@ -7,8 +7,8 @@
     <include file="result.zcml" />
 
     <utility
-        name="mellon_plugin.reporter.sqlalchemy.orm.query.orm_related_models"
-        component=".query.ORMRelatedModelsFactory"
+        name="mellon_plugin.reporter.sqlalchemy.orm.query.orm_related_models_adder"
+        component=".query.ORMRelatedModelsAdderFactory"
         />
     
     <utility

@@ -3,6 +3,7 @@ from .interfaces import ISAExpression
 from .interfaces import ISAInstrumentedAttribute
 from .interfaces import ISAModelFilterExpression
 from .interfaces import ISAModelFilterExpressionGroup
+from .interfaces import IORMRelatedModelsAdder
 from .interfaces import IORMRelatedModels
 from .interfaces import ISAOuterJoinQuery
 from .interfaces import ISAQuery

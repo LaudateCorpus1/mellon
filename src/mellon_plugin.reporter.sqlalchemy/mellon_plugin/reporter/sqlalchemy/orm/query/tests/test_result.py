@@ -23,13 +23,12 @@ class MellonOrmResultTestCase(unittest.TestCase):
     def test_basic_query_result_row_column_getter(self):
         core_models = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
-        core_models.initialize([models.Secret, models.Snippet, models.MellonFile])
+        core_models.add_sequence([models.Secret, models.Snippet, models.MellonFile])
         #simplest search will be for a secret, it should only return based on the
         #total count of secrets in db (other would return many-to-one results)
         q = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    models.Secret,
-                    core_models.models()
+                    core_models.flattened(models.Secret)
                     )
         mf = component.getUtility(query.ISAResultRowModel).first(orm.ISAMellonFile, q.first())
         self.assertTrue(orm.ISAMellonFile.providedBy(mf))

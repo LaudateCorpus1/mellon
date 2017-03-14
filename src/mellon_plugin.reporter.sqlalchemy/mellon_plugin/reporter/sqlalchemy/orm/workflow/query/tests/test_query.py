@@ -25,7 +25,7 @@ class MellonOrmQueryTestCase(unittest.TestCase):
     def test_workflow_core_related_model_registration(self):
         rmodels = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.workflow.core_related_models")
-        self.assertIn(workflow_models.SecretSeverity, rmodels.models())
+        self.assertIn(workflow_models.SecretSeverity, rmodels.flattened(mellon_models.MellonFile))
     
         
     def test_workflow_basic_query_results_secret(self):
@@ -35,9 +35,7 @@ class MellonOrmQueryTestCase(unittest.TestCase):
         #total count of secrets in db (other would return many-to-one results)
         q = component.createObject(
                     u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-                    mellon_models.Secret,
-                    core_models.models()
-                    )
+                    core_models.flattened(mellon_models.Secret))
         self.assertEqual(q.count(), 3)
         status = self.rrm.first(workflow.ISASecretStatus, q.order_by(mellon_models.Secret.id).first())
         self.assertEqual(status.secret_id, 'secret_1')

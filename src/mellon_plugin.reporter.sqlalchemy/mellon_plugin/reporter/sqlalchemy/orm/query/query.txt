@@ -24,7 +24,7 @@ SELECT c,b,a,d,e FROM c LEFT OUTER JOIN b ... WHERE a.1 == 'something'
 The components in this package help to streamline this kind of activity.
 
 
-Model Relationship Stack
+Model Relationship Graph
 -------------------------
 To effectively query the Mellon ORM data, first ORM table relationships
 must be defined.  This identifies the one->many->many->... for each table.
@@ -42,66 +42,69 @@ other table in the list (see models.py for more details).  This top-down
 order shown above is important as tables have direct or indirect relationships
 with all tables listed higher.
 
-The query package provides the IORMRelatedModels interface to help manage this
+The query package provides the IORMRelatedModelsAdder interface to help manage this
 structure via the ORM models.  Mostly this is important to understand if you
 plan to add extra ORM models on top of this list and then need to be able to
 search that data in the method described above (e.g. LEFT OUTER JOIN).
 
-an empty IORMRelatedModels provider can be created via a component factory
+an empty IORMRelatedModelsAdder provider can be created via a component factory
 >>> from zope import component
->>> rel_manager = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.orm_related_models")
+>>> rel_manager = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.orm_related_models_adder")
 
-This relationship manager is empty
->>> rel_manager.models()
-()
-
-We can add a couple relationships easy enough.  injecting models into the
-manager will prepend them by default
+We can add a couple relationships easy enough.  Model relationship are added
+as sequences.  These are added into the manager as a graph with by-directional
+edges for each adjacent sequence entry.
 >>> from mellon_plugin.reporter.sqlalchemy.orm import models
->>> rel_manager.inject(models.Snippet)
->>> rel_manager.inject(models.Secret, models.Snippet)
->>> list(map(lambda x: x.__name__, rel_manager.models()))
+>>> rel_manager.add_sequence([models.Snippet, models.Secret])
+
+Once the graph is populated, we can enumerate it in BFS form via the
+flattened() call.  We have to indicate where the BFS traversal will start.  In
+this example, we start from Snippet.
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.Snippet)))
 ['Snippet', 'Secret']
 
-The rel_manager orders the top-down structure from above in left->right manor in
-the sequence returned by rel_manager.models().  We can inject to the
-front of the stack (again)
->>> rel_manager.inject(models.MellonFile)
->>> rel_manager.inject(models.MellonFileAccessContext)
->>> rel_manager.inject(models.AuthorizationContext)
+We could just as easy start from Secret
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.Secret)))
+['Secret', 'Snippet']
 
-Now looking at the relationship stack again
->>> list(map(lambda x: x.__name__, rel_manager.models()))
-['AuthorizationContext', 'MellonFileAccessContext', 'MellonFile', 'Snippet', 'Secret']
+You can add isolated nodes without any harm
+>>> rel_manager.add_sequence([models.MellonFile])
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.Secret)))
+['Secret', 'Snippet']
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.MellonFile)))
+['MellonFile']
 
-The package offers a few pre-made utilities for common stacks.
+You can add edges to those nodes easy enough
+>>> rel_manager.add_sequence([models.MellonFile, models.Snippet])
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.MellonFile)))
+['MellonFile', 'Snippet', 'Secret']
+
+
+The package offers a few pre-made utilities for common graphs.
 
 A core stack
->>> from mellon_plugin.reporter.sqlalchemy.orm.query import IORMRelatedModels
 >>> rel_manager = component.createObject( 
 ... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
->>> list(map(lambda x: x.__name__, rel_manager.models()))
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.MellonFile)))
 ['MellonFile', 'Snippet', 'Secret']
 
 A Stack that includes the authorization context
 >>> rel_manager = component.createObject(
 ... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_auth_context_related_models")
->>> list(map(lambda x: x.__name__, rel_manager.models()))
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.AuthorizationContext)))
 ['AuthorizationContext', 'MellonFileAccessContext', 'MellonFile', 'Snippet', 'Secret']
 
 A full stack that includes the discovery dates
 >>> rel_manager = component.createObject(
 ... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_all_related_models")
->>> list(map(lambda x: x.__name__, rel_manager.models()))
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(models.AuthorizationContext)))
 ['AuthorizationContext', 'MellonFileAccessContext', 'MellonFile', 'Snippet', 'Secret', 'SecretDiscoveryDate']
 
 
 Model Query & Result Utility
 -----------------------------
-Querying the data involves 2 important pieces of information.  The first is the
-Model relationship stack as described above.  The second is to identify which
-Model will be left-most, e.g. which table would you like to insure to get
-all values available to be filtered against.
+Now that the model relationships have been define, we can move into creating
+database queries and getting results.
 
 Let's consider a simple example with the core models MellonFile, Snippet, 
 and Secret.  Here's how you could get a SQLAlchemy query object that would
@@ -111,10 +114,13 @@ first, get the core model stack
 >>> rel_manager = component.createObject(
 ... 				u"mellon_plugin.reporter.sqlalchemy.orm.query.mellon_core_related_models")
 
-Now we can object the query object via a component factory.  q is a ISAQuery 
-provider, which means it is a SQLAlchemy Query object.
+Now we can get a query object via a component factory.  q is a ISAQuery 
+provider, which means it is a SQLAlchemy Query object.  In this case, q is also
+a ISAOuterJoinQuery provider allowing the kind of filtering we desire.  Notice
+how we pass in the model sequence based on the flattened() call (which 
+identifies the required left-most model).
 >>> q = component.createObject(u"mellon_plugin.reporter.sqlalchemy.orm.query.outer_joined_query",
-... 						models.Secret, rel_manager.models())
+... 						rel_manager.flattened(models.MellonFile))
 
 Now that our query is prepared, we can execute it and examine the results.
 Result rows are returned as KeyedTuple objects.  Tuple entries will be ORM
