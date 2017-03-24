@@ -5,6 +5,33 @@
 
     <include package=".filter" />
     <include package=".pagination" />
-    <include package=".request" />
+    <include package=".subscribers" />
+
+    <utility
+        name="mellon_api.api.sa_endpoint"
+        component=".endpoint.APISAEndpointFactory"
+        />
+    
+    <utility
+        provides=".IAPISAEndpoints"
+        factory=".endpoint.APISAEndpoints"
+        />
+    
+    <utility
+        provides=".IAPISAEndpointLookup"
+        factory=".endpoint.APISAEndpointLookup"
+        />
+
+    <utility
+        name="mellon_api.api.resource_type"
+        provides="zope.component.factory.IFactory"
+        component=".resource.flask_api_resource_type_factory"
+        />
+
+    <adapter
+        provides=".IAPIRequestResourceInclude"
+        for="mellon_api.IFlaskRequest"
+        factory=".resource.APIRequestResourceIncludeFromFlaskRequest"
+        />
 
 </configure>

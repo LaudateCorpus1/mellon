@@ -3,5 +3,20 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon_api">
 
+    <utility
+        name="mellon_api.api.pagination.page_request_from_request_and_count"
+        component=".pagination.APIRequestPageFromFlaskRequestAndCountFactory"
+        />
+
+    <adapter
+        provides=".IAPIPagination"
+        for="zope.annotation.interfaces.IAnnotatable"
+        factory=".pagination.APIPaginationFromFlaskRequest"
+        />
+    
+    <utility
+        name="mellon_api.api.pagination.pagination_from_request_and_count"
+        component=".pagination.APIPaginationFromRequestAndCountFactory"
+        />
 
 </configure>

@@ -7,3 +7,8 @@ class IAPIRequestFilter(interface.Interface):
                 required=True,
                 readonly=True
             )
+    include = schema.ASCIILine(
+                title=u"comma delaminated list of resources",
+                required=True,
+                readonly=True
+            )

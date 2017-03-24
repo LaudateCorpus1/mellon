@@ -1,12 +1,12 @@
 from zope import component
 import json
-#from multiprocessing import Process
 from mellon_plugin.reporter.sqlalchemy.orm.testing import MellonOrmRuntimeReporterLayer
 import mellon
 import mellon_api
 import mellon_api.sa
 from mellon_api.app import register_flask_app, configure_flask_app
 from base64 import b64encode
+from .sa import ISASession
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
@@ -17,11 +17,26 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
     class, self.session will be available via the reporter orm package.
     In addition, the flask registration will create an independent 
     engine/session.
+    
+    To help ease the pain introduced by this, this layer will over-ride the
+    reporter orm session global with the thread-local during setup...then 
+    rollback during tear-down.
     """
+    _reporter_orm_session = None
     
     def setUp(self, config=None):
         mellon.mellon.Mellon.app_zcml = (mellon_api, 'configure.zcml')
-        super(MellonApiRuntimeLayer, self).setUp(config=config)
+        
+        _config = \
+            {'ResourcePagination':
+                {'max_limit': 51,
+                 'default_limit': 21
+                 },
+            }
+        if config:
+            _config.update(config)
+        self.config = _config
+        super(MellonApiRuntimeLayer, self).setUp(config=_config)
         
         register_flask_app()
         configure_flask_app()
@@ -33,17 +48,17 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
         #see http://flask.pocoo.org/docs/0.12/testing/
         self.client = self.flask_app.test_client()
         
-        #flask-restless issues sessions commits...this is bad for testing rollback
-        session=component.getUtility(mellon_api.sa.ISASession)
-        self._session_commit = session.commit
-        session.commit = session.flush
+        #over-ride reporter orm session with thread-local
+        self._reporter_orm_session = self.session
+        self.session = component.getUtility(ISASession)
     
     def tearDown(self):
         session = component.queryUtility(mellon_api.sa.ISASession)
         if session:
-            session.commit = self._session_commit # reset this to normal
             session.rollback()
             session.remove()
+        #replace reporter orm session
+        self.session = self._reporter_orm_session
         super(MellonApiRuntimeLayer, self).tearDown()
 
     def get_json(self, url_endpoint_request, basicauth=None):

@@ -42,10 +42,11 @@ setup(name='mellon_api',
           'sparc.configuration',
           'sparc.logging',
           'flask',
-          'flask-restless',
+          'flask-restful',
+          'flask-login',
           'passlib',
           'itsdangerous',
-          'marshmallow-jsonapi'
+          'py-jsonapi'
       ],
       tests_require=[
       ],

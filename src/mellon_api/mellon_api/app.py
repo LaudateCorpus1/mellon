@@ -2,15 +2,16 @@ import os
 from zope import component
 from zope import interface
 import flask
-from flask_restless import APIManager
+import flask_restful
+import jsonapi
+import jsonapi.flask
+import jsonapi.sqlalchemy
+from .sa import ISASession
 from sparc.configuration.container import application
 import mellon
 import mellon_api
 from mellon import IMellonApplication
 from mellon.mellon import create_and_register_app, get_registered_app
-from mellon_plugin.reporter.sqlalchemy.orm import models as mellon_models
-from mellon_plugin.reporter.sqlalchemy.orm.workflow import models as workflow_models
-from .sa import ISASession
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
@@ -29,13 +30,17 @@ def register_flask_app():
     sm.registerUtility(app, mellon_api.IFlaskApplication) #hookable event
     logger.debug('new mellon_api.IFlaskApplication singleton registered')
     
-    api = APIManager(app, 
-                     session=component.getUtility(ISASession),
-                     preprocessors=component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_global'),
-                     postprocessors=component.getUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_global'))
-    add_api_resources(api)
+    #We init the api without reference to the app because then api.resources
+    #will be populated with the all route Resources (which is needed by the 
+    #internals of mellon_api). 
+    db = jsonapi.sqlalchemy.Database(sessionmaker=component.getUtility(ISASession))
+    api = jsonapi.flask.FlaskAPI("/api", db)
+    #api = flask_restful.Api()
     interface.alsoProvides(api, mellon_api.IFlaskRestApiApplication)
-    sm.registerUtility(api, mellon_api.IFlaskRestApiApplication) #hookable event
+    sm.registerUtility(api, mellon_api.IFlaskRestApiApplication) #hookable event (resources)
+    #at this point api.resources is populated.  No new routes after this!!!
+    api.init_app(app)
+    #api.app = app
     logger.debug('new mellon_api.IFlaskRestApiApplication singleton registered')
 
 def configure_flask_app():
@@ -50,20 +55,6 @@ def configure_flask_app():
     for k in config_settings:
         app.config[k] = config_settings[k]
     logger.debug('mellon_api.IFlaskApplication singleton configured with runtime settings from Mellon yaml config.')
-
-def get_api_endpoint_kwargs(endpoint):
-    m = get_registered_app()
-    kwargs = m['vgetter'].get('FlaskRestless', 'settings', 'default', default={})
-    kwargs.update(m['vgetter'].get('FlaskRestless', 'settings', endpoint.lower(), default={}))
-    kwargs['preprocessors'] = component.queryUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_'+endpoint.lower())
-    kwargs['postprocessors'] = component.queryUtility(mellon_api.IFlaskRestApiPostprocessors, name='mellon_api.postprocessors_'+endpoint.lower())
-    return kwargs
-    
-
-def add_api_resources(api):
-    api.create_api(mellon_models.Secret, 
-                   methods=['GET','PATCH'],
-                   **get_api_endpoint_kwargs('Secret'))
 
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
