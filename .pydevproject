@@ -8,6 +8,9 @@
 <path>/${PROJECT_DIR_NAME}/src/mellon_plugin.factory.stash</path>
 <path>/${PROJECT_DIR_NAME}/src/mellon_plugin.factory.web_crawler</path>
 <path>/${PROJECT_DIR_NAME}/src/mellon_plugin.sniffer.entropy</path>
+<path>/${PROJECT_DIR_NAME}/src/mellon_plugin.reporter.sqlalchemy</path>
+<path>/${PROJECT_DIR_NAME}/src/mellon_api</path>
+<path>/${PROJECT_DIR_NAME}/src/mellon_gui</path>
 </pydev_pathproperty>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.7</pydev_property>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
