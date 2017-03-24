@@ -96,20 +96,20 @@ SAQueryFactory = Factory(SAQuery)
 
 @interface.implementer(qry_ifaces.ISAOuterJoinQuery)
 class SAOuterJoinQuery(object):
-    def __new__(cls, models):
+    def __new__(cls, models, select=None):
         """Return ISAOuterJoinQuery provider based on related models
         
         args:
             models: sequence of ISAModel providers ordered left->right in terms
-                    of required SQL query dependency structure.  
+                    of required SQL query dependency structure.
+            select: sequence of models to return data for.  default is all 
+                    entries in models
         """
-        #re-order sequence based on selected left.  following this sample:
-        # models = [1,2,3,4,5]
-        # left = 4
-        # ordered = [4,3,2,1,5]
         models = [m for m in models]
+        if not select:
+            select = models
         
-        q = SAQuery(*models) # base query
+        q = SAQuery(*select) # base query
         for m in models[1:]:
             q = q.outerjoin(m)
         interface.alsoProvides(q, qry_ifaces.ISAOuterJoinQuery)
