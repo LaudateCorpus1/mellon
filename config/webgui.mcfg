@@ -1,0 +1,65 @@
+# WEB BASED WORKFLOW SAMPLE
+# This configuration will enable web/browser access to secrets found with 
+# Mellon.  In addition, it provides workflow and automation capabilities for
+# managing results.
+
+# -----------------------------------------------
+# UPDATE THESE ENTRIES TO MATCH YOUR ENVIRONMENT
+# -----------------------------------------------
+
+# You need to define what/how you'd like Mellon to scan.  We'll barrow the
+# entries from filesystem.mcfg (see that document for more detailed explanation
+# on these entries)
+FileSystemDir: &filesystem_dir
+  directory: sample/filesystem
+MellonRegexSniffer:
+ pattern_files: 
+  byte: config/sniffer/sniffer_regex_byte.cfg
+  unicode: config/sniffer/sniffer_regex_unicode.cfg
+  all: config/sniffer/sniffer_regex_all.cfg
+MellonRegexWhitelist:
+ pattern_files:
+  file: config/whitelist/whitelist_regex_file.cfg
+  secret: config/whitelist/whitelist_regex_secret.cfg
+  all: config/whitelist/whitelist_regex_all.cfg
+
+# We need to define a database to connect to.  You can set this to DSN
+# names supported by the Python SQLAlchemy library.  By default, we'll
+# use sqlite located under the var directory.
+SQLAlchemyEngine: &db_engine
+ dsn: sqlite:///var/mellon.db
+
+# ------------------
+# LEAVE THESE ALONE
+# ------------------
+
+# We need to register the components for:
+#  - regex based sniffing
+#  - regex based whitelisting
+#  - The SQLAlchemy ORM reporter
+ZCMLConfiguration:
+ - package: mellon.sniffers.regex
+ - package: mellon.whitelists.regex
+ - package: mellon_plugin.reporter.sqlalchemy.orm
+ - package: mellon_api.auth
+
+# This defines how Mellon will parse unicode and byte file snippets for secrets.
+# We'll set some reasonable starting values.
+MellonSnippet: &defaul_mellon_snippet
+   lines_coverage: 10
+   lines_increment: 8
+   bytes_read_size: 512000
+   bytes_coverage: 8
+   bytes_increment: 7
+   
+# This will tell Mellon to recursively parse the directory defined above
+# for secret patterns defined in the regex files referenced above.
+MellonFileProviderFactory:
+ name: mellon.factories.filesystem.file_provider_for_recursive_directory_config
+ MellonSnippet: *defaul_mellon_snippet
+ FileSystemDir: *filesystem_dir
+
+# This will wire the orm reporter to leverage the SQLAlchemy engine defined above
+SQLAlchemyORMReporter:
+ SQLAlchemyReporter:
+  SQLAlchemyEngine: *db_engine
