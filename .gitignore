@@ -65,3 +65,14 @@ src_ext/
 
 # Apple
 .DS_store
+
+# Ember
+tmp/
+node_modules/
+bower_components/
+.sass-cache
+connect.lock
+coverage/*
+libpeerconnection.log
+npm-debug.log*
+testem.log
