@@ -9,6 +9,7 @@ from sparc.configuration import yaml
 from sparc.logging import logging
 
 from .events import SnippetAvailableForSecretsSniffEvent
+from .interfaces import IMellonApplication, IMellonFileProvider, IWhitelistChecker
 import mellon
 
 DESCRIPTION="""\
@@ -18,7 +19,7 @@ configured searches.  Matches will be logged via the Python logging
 facility.
 """
 
-@interface.implementer(mellon.IMellonApplication)
+@interface.implementer(IMellonApplication)
 class Mellon(application.YamlCliAppMixin):
 
     logger = logging.getLogger(__name__)
@@ -29,13 +30,13 @@ class Mellon(application.YamlCliAppMixin):
         self.logger.info(u"searching for MellonFileProviderFactory entries in config file")
         for d in v_iter.values(self.get_config(), 'MellonFileProviderFactory'): #d is dict of MellonFileProviderFactories keys
             fprovider = component.createObject(d['name'], d) #assumes named factory provides IMellonFileProviderFactory
-            if not mellon.IMellonFileProvider.providedBy(fprovider):
+            if not IMellonFileProvider.providedBy(fprovider):
                 self.logger.warn(u"expected factory %s to create objects providing IMellonFileProvider, skipping" % str(d['name']))
                 continue
             self.logger.info(u"found MellonFileProviderFactory config entry with name: {}".format(d['name']))
             try:
                 for f in fprovider: # iterate the files in the provider
-                    if component.getUtility(mellon.IWhitelistChecker).check(f):
+                    if component.getUtility(IWhitelistChecker).check(f):
                         self.logger.info(u"skipping white-listed file: {}".format(f))
                         continue
                     self.logger.info(u"searching for secrets in file: {} with authorization {}".format(f, mellon.IAuthorizationContext(f)))
@@ -63,7 +64,7 @@ def create_app(config, verbose=False, debug=False):
 def create_and_register_app(config, verbose=False, debug=False):
     app = create_app(config, verbose, debug)
     sm = component.getSiteManager()
-    sm.registerUtility(app, mellon.IMellonApplication) #give components access to app config
+    sm.registerUtility(app, IMellonApplication) #give components access to app config
     return app
 
 def get_registered_app():
@@ -76,7 +77,7 @@ def get_registered_app():
          'vgetter': sparc.configuration.container.IPyContainerConfigValue provider
         }
     """
-    app = component.getUtility(mellon.IMellonApplication)
+    app = component.getUtility(IMellonApplication)
     config = app.get_config()
     vgetter = container.IPyContainerConfigValue(config)
     return {'app':app,'config':config,'vgetter':vgetter}
@@ -84,7 +85,7 @@ def get_registered_app():
 def main():
     args = application.getScriptArgumentParser(DESCRIPTION).parse_args()
     create_and_register_app(args.config_file, args.verbose, args.debug)
-    app = component.getUtility(mellon.IMellonApplication) #test registration and go
+    app = component.getUtility(IMellonApplication) #test registration and go
     app.configure() #process yaml-based zcml includes
     app.go() 
 
