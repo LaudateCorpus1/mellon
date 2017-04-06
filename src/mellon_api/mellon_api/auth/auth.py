@@ -1,8 +1,9 @@
 from zope import component
 from zope import interface
+from flask import abort
 from . import IAuthenticationProvider, IUserPasswordAuthenticationManager
 from .. import IFlaskRequest
-from flask_restless import ProcessingException
+from ..exc import ProcessingException
 from . import exc
 from .. import IFlaskApplication
 from ..sa import ISASession
@@ -12,7 +13,8 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
 
 def api_authentication_preprocessor(*args, **kwargs):
-    request = component.getUtility(IFlaskRequest)
+    #request = component.getUtility(IFlaskRequest)
+    request = component.createObject(u"mellon_api.flask_request")
     auth_enabled = False
     for provider in component.subscribers([request], IAuthenticationProvider):
         auth_enabled = True
@@ -22,14 +24,16 @@ def api_authentication_preprocessor(*args, **kwargs):
         except exc.MellonAPIAuthenticationException:
             pass
     if auth_enabled:
-        raise ProcessingException(description='Not Authorized', code=401)
+        from jsonapi.base.errors import Forbidden
+        raise Forbidden
+        #raise ProcessingException(description='Not Authorized', code=401)
 
 @interface.implementer(IAuthenticationProvider)
 @component.adapter(IFlaskRequest)
 class BasicAuth(object):
     def __init__(self, context):
         self.context = context
-        self.request = context.request
+        self.request = context
         self.manager = IUserPasswordAuthenticationManager(
                             component.getUtility(ISASession))
     
@@ -82,7 +86,7 @@ class TokenAuth(BasicAuth):
     
     def __init__(self, context):
         self.context = context
-        self.request = context.request
+        self.request = context
         self.app = component.getUtility(IFlaskApplication)
         self.s = Serializer(self.app.config['SECRET_KEY'])
     

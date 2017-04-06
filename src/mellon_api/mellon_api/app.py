@@ -2,9 +2,10 @@ import os
 from zope import component
 from zope import interface
 import flask
-import flask_restful
-import jsonapi
+#import flask_restful
+from jsonapi.base.errors import Error, error_to_response
 import jsonapi.flask
+from jsonapi.flask.api import to_response
 import jsonapi.sqlalchemy
 from .sa import ISASession
 from sparc.configuration.container import application
@@ -20,6 +21,18 @@ DESCRIPTION="""\
 Mellon Restful API server.
 """
 
+class MellonAPI(jsonapi.flask.FlaskAPI):
+    
+    def handle_request(self, *args, **kwargs):
+        #import pdb;pdb.set_trace
+        try:
+            for preprocessor in component.getUtility(mellon_api.IFlaskRestApiPreprocessors):
+                preprocessor()
+        except Error as e:
+            #import pdb;pdb.set_trace()
+            return to_response(error_to_response(e, self.dump_json))
+        return super(MellonAPI, self).handle_request(*args, **kwargs)
+
 def register_flask_app():
     m = get_registered_app()
     sm = component.getSiteManager()
@@ -34,7 +47,7 @@ def register_flask_app():
     #will be populated with the all route Resources (which is needed by the 
     #internals of mellon_api). 
     db = jsonapi.sqlalchemy.Database(sessionmaker=component.getUtility(ISASession))
-    api = jsonapi.flask.FlaskAPI("/api", db)
+    api = MellonAPI("/api", db)
     #api = flask_restful.Api()
     interface.alsoProvides(api, mellon_api.IFlaskRestApiApplication)
     sm.registerUtility(api, mellon_api.IFlaskRestApiApplication) #hookable event (resources)

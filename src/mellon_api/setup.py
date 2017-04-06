@@ -46,7 +46,8 @@ setup(name='mellon_api',
           'flask-login',
           'passlib',
           'itsdangerous',
-          'py-jsonapi'
+          'py-jsonapi',
+          'marshmallow_jsonapi' #remove after conversion to py-jsonapi is complete
       ],
       tests_require=[
       ],

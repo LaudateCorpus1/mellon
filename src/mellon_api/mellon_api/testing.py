@@ -66,7 +66,7 @@ class MellonApiRuntimeLayer(MellonOrmRuntimeReporterLayer):
         return json.loads(r.get_data(as_text=True))
     
     def get_response(self, url_endpoint_request, basicauth=None):
-        headers = {}
+        headers = {"content-type": "application/vnd.api+json"}
         if basicauth:
             username, password = basicauth[0], basicauth[1]
             bts = bytes("{0}:{1}".format(username, password),encoding='latin-1')

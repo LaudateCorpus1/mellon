@@ -12,7 +12,7 @@ from ..sa import ISASession
 def login(**kwargs):
     manager = IUserPasswordAuthenticationManager(
                             component.getUtility(ISASession))
-    r = component.getUtility(IFlaskRequest).request
+    r = component.createObject(u"mellon_api.flask_request")
     try:
         manager.check_authentication(r.form['username'], r.form['password'])
     except (KeyError, exc.MellonAPIAuthenticationException):

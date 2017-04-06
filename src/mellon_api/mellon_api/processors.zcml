@@ -4,11 +4,16 @@
     i18n_domain="mellon_api">
 
     <utility
+        provides=".IFlaskRestApiPreprocessors"
+        component=".processors.preprocessors"
+        />
+
+    <!--
+    <utility
         name="mellon_api.preprocessors_global"
         provides=".IFlaskRestApiPreprocessors"
         component=".processors.preprocessors_global"
         />
-    
     <utility
         name="mellon_api.postprocessors_global"
         provides=".IFlaskRestApiPostprocessors"
@@ -26,5 +31,6 @@
         provides=".IFlaskRestApiPostprocessors"
         component=".processors.postprocessors_secret"
         />
+    -->
 
 </configure>

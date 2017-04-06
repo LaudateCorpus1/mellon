@@ -6,21 +6,9 @@ from ..auth import api_authentication_preprocessor
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
-def _inject_auth_func(method):
-    preprocessors = component.getUtility(
-                        mellon_api.IFlaskRestApiPreprocessors, 
-                        name=u"mellon_api.preprocessors_global")
-    if method not in preprocessors:
-        preprocessors[method] = []
-    preprocessors[method].insert(0, api_authentication_preprocessor)
-
 @component.adapter(mellon_api.IFlaskApplication, IRegistrationEvent)
 def inject_db_authentication(app, event):
-    _inject_auth_func('POST')
-    _inject_auth_func('GET_SINGLE')
-    _inject_auth_func('GET_MANY')
-    _inject_auth_func('PATCH_SINGLE') # covers PUT as well
-    _inject_auth_func('PATCH_MANY') # covers PUT as well
-    _inject_auth_func('DELETE_SINGLE')
-    _inject_auth_func('DELETE_MANY')
+    preprocessors = component.getUtility(
+                        mellon_api.IFlaskRestApiPreprocessors, )
+    preprocessors.append(api_authentication_preprocessor)
     logger.debug('injected authentication provider into api preprocessors')

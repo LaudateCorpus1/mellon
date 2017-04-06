@@ -38,27 +38,28 @@ class MellonApiAuthTestCase(unittest.TestCase):
         return json.loads(r.get_data(as_text=True))['token'] if r.status_code == 200 else None
     
     def test_preprocessor_injection(self):
-        pp = component.getUtility(mellon_api.IFlaskRestApiPreprocessors, name='mellon_api.preprocessors_global')
-        self.assertEquals(pp['GET_SINGLE'][0], api_authentication_preprocessor)
+        pp = component.getUtility(mellon_api.IFlaskRestApiPreprocessors)
+        self.assertEquals(pp[0], api_authentication_preprocessor)
     
     def test_basic_auth_provider(self):
         self.manager.create('user1', 'password1')
+        
         r = self.layer.get_response('/api/secrets')
-        self.assertEqual(r.status_code, 401)
+        self.assertEqual(r.status_code, 403)
         json = self.layer.get_json('/api/secrets')
-        self.assertEqual(json, {'message': 'Not Authorized'})
+        self.assertEqual(json['errors'][0]['title'], 'Forbidden')
         
         basicauth = ('user1', 'password1')
-        r = self.layer.get_response('/api/secrets', basicauth=basicauth)
+        r = self.layer.get_response('/api/AuthorizationContext', basicauth=basicauth)
         self.assertEqual(r.status_code, 200)
         
         basicauth = ('invalid_user', '')
         r = self.layer.get_response('/api/secrets', basicauth=basicauth)
-        self.assertEqual(r.status_code, 401)
+        self.assertEqual(r.status_code, 403)
         
         basicauth = ('user1', 'invalid_password')
         r = self.layer.get_response('/api/secrets', basicauth=basicauth)
-        self.assertEqual(r.status_code, 401)
+        self.assertEqual(r.status_code, 403)
 
     def test_token_login(self):
         self.manager.create('user1', 'password1')
@@ -68,13 +69,13 @@ class MellonApiAuthTestCase(unittest.TestCase):
     def test_token_resource_access(self):
         self.manager.create('user1', 'password1')
         token = self.login('user1', 'password1')
-        r = self.layer.get_response('/api/secrets', basicauth=(token,''))
+        r = self.layer.get_response('/api/AuthorizationContext', basicauth=(token,''))
         self.assertEqual(r.status_code, 200)
         time.sleep(self.layer.token_lifespan+1)
-        r = self.layer.get_response('/api/secrets', basicauth=(token,''))
-        self.assertEqual(r.status_code, 401)
-        r = self.layer.get_response('/api/secrets', basicauth=('bad_signature',''))
-        self.assertEqual(r.status_code, 401)
+        r = self.layer.get_response('/api/AuthorizationContext', basicauth=(token,''))
+        self.assertEqual(r.status_code, 403)
+        r = self.layer.get_response('/api/AuthorizationContext', basicauth=('bad_signature',''))
+        self.assertEqual(r.status_code, 403)
         
         
 class test_suite(object):

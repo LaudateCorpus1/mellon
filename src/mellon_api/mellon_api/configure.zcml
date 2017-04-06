@@ -8,6 +8,8 @@
     <include package=".api" />
     <include package=".sa" />
     
+    <include file="processors.zcml" />
+    
     <utility
         name="mellon_api.flask_request"
         component=".request.FlaskRequestFactory"
