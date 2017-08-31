@@ -4,6 +4,7 @@ from zope import interface
 from zope.schema.fieldproperty import FieldProperty
 from sqlalchemy import and_, or_
 from . import interfaces as qry_ifaces
+from . import query
 
 @interface.implementer(qry_ifaces.ISAModelFilterExpression)
 class SAModelFilterExpression(object):
@@ -107,16 +108,22 @@ def convert_expression_group_container(eg_container):
         if is_expression_group_container(cond):
             expressions.append(convert_expression_group_container(cond))
         else: #ISAModelFilterExpression container
-            cond['attribute'] = component.createObject(
-                    u"mellon_plugin.reporter.sqlalchemy.orm.query.instrumented_attribute",
-                    cond['attribute'])
-            expressions.append(
-                component.createObject(
-                    u"mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression",
-                    **cond))
-    return component.createObject(
-            u"mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression_group",
-            conjunction=conj, expressions=set(expressions))
+            #cond['attribute'] = component.createObject(
+            #        u"mellon_plugin.reporter.sqlalchemy.orm.query.instrumented_attribute",
+            #        cond['attribute'])
+            cond['attribute'] = \
+                    query.SAInstrumentedAttributeFromDottedStringFactory(
+                                                            cond['attribute'])
+            #expressions.append(
+            #    component.createObject(
+            #        u"mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression",
+            #        **cond))
+            expressions.append(SAModelFilterExpressionFactory(**cond))
+    #return component.createObject(
+    #        u"mellon_plugin.reporter.sqlalchemy.orm.query.filter_expression_group",
+    #        conjunction=conj, expressions=set(expressions))
+    return SAModelFilterExpressionGroupFactory(conjunction=conj, 
+                                               expressions=set(expressions))
 
 @interface.implementer(qry_ifaces.ISAModelFilterExpressionGroup)
 class SAModelFilterExpressionGroupFromContainer(object):
