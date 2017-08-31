@@ -1,5 +1,9 @@
 from zope import interface
+from zope.interface.common.sequence import IReadSequence
 from zope import schema
+
+from sqlalchemy import orm, sql
+
 
 class IORMRelatedModels(interface.Interface):
     def flattened(seed):
@@ -11,6 +15,7 @@ class IORMRelatedModelsAdder(IORMRelatedModels):
 
 class ISAQuery(interface.Interface):
     """SQLAlchemy query object initialized with desired return items"""
+interface.classImplements(orm.Query, ISAQuery)
 
 class ISAOuterJoinQuery(ISAQuery):
     """SQLAlchemy query object initialized with outerjoin relationships between models"""
@@ -20,9 +25,11 @@ class ISAExpression(interface.Interface):
 
 class ISAInstrumentedAttribute(interface.Interface):
     """SQLAlchemy ORM model attribute"""
+interface.classImplements(orm.attributes.InstrumentedAttribute, ISAInstrumentedAttribute)
 
 class ISAConjunction(interface.Interface):
     """Result from SQLAlchemy and_() or or_(), object represents conjunction of expressions"""
+interface.classImplements(sql.expression.BooleanClauseList, ISAConjunction)
 
 class ISAResultRowModel(interface.Interface):
     """SQLAlchemy model query result row parser"""

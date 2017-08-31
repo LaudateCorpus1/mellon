@@ -80,7 +80,7 @@ class SAInstrumentedAttributeFromDottedString(object):
             raise TypeError('unable to find {} type in SQLAlchemy base classes {}'.format(class_name, base_classes.keys()))
         class_ = base_classes[class_name]
         property_ = getattr(class_, property_name)
-        interface.alsoProvides(property_, qry_ifaces.ISAInstrumentedAttribute)
+        #interface.alsoProvides(property_, qry_ifaces.ISAInstrumentedAttribute)
         return getattr(class_, property_name)
 SAInstrumentedAttributeFromDottedStringFactory = Factory(SAInstrumentedAttributeFromDottedString)
 
@@ -89,7 +89,8 @@ class SAQuery(object):
     def __new__(cls, *args):
         q = db.get_session().query(*args)
         logger.debug("ISAQuery provider inited with args {}".format([a for a in args]))
-        interface.alsoProvides(q, qry_ifaces.ISAQuery)
+        #now done at class level
+        #interface.alsoProvides(q, qry_ifaces.ISAQuery)
         return q
 SAQueryFactory = Factory(SAQuery)
     
