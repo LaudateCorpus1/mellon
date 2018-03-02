@@ -1,0 +1,21 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_gui.auth">
+    
+    <!--
+    IMPORTANT:  This is a Mellon zcml file (not a Pyramid).  Because the auth
+                components are an optional runtime-based configuration item,
+                these would be loaded via a Mellon yaml config entry (as
+                opposed to an include statement from another zcml file). 
+    -->
+    
+    <include package="sparc.login" />
+    
+    <includeOverrides package=".crypt" />
+    <includeOverrides package=".sa" />
+    
+    <include package=".pyramid" />
+
+    
+</configure>

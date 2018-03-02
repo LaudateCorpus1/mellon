@@ -7,6 +7,11 @@
 # UPDATE THESE ENTRIES TO MATCH YOUR ENVIRONMENT
 # -----------------------------------------------
 
+# This is the key that will be used to encrypt authentication tickets for
+# the client browser.  This should be unique among other secrets you might have.
+PyramidAuthTktAuthenticationPolicy:
+ secret: CHANGE_ME_NOW
+
 # You need to define what/how you'd like Mellon to scan.  We'll barrow the
 # entries from filesystem.mcfg (see that document for more detailed explanation
 # on these entries)
@@ -41,7 +46,7 @@ ZCMLConfiguration:
  - package: mellon.sniffers.regex
  - package: mellon.whitelists.regex
  - package: mellon_plugin.reporter.sqlalchemy.orm
- - package: mellon_api.auth
+ - package: mellon_gui.auth
 
 # This defines how Mellon will parse unicode and byte file snippets for secrets.
 # We'll set some reasonable starting values.

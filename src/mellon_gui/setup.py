@@ -1,50 +1,60 @@
-from setuptools import setup, find_packages
 import os
 
-version = '0.0.1'
+from setuptools import setup, find_packages
 
-setup(name='mellon_gui',
-      version=version,
-      description="Mellon Web Interface.",
-      long_description=open("README.md").read() + "\n" +
-                       open("HISTORY.txt").read(),
-      # Get more strings from
-      # http://pypi.python.org/pypi?:action=list_classifiers
-      classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Intended Audience :: System Administrators',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3'
-      ],
-      keywords=['zca'],
-      author='David Davis',
-      author_email='david.davis@crowdstrike.com',
-      url='https://github.com/CrowdStrike/mellon',
-      download_url = '',
-      license='MIT',
-      packages=find_packages(exclude=['ez_setup']),
-      namespace_packages=[],
-      include_package_data=True,
-      package_data = {
-          '': ['*.zcml', '*.xml']
-        },
-      zip_safe=False,
-      install_requires=[
-          'setuptools',
-          'zc.buildout',
-          'sparc.configuration',
-          'sparc.utils',
-          'mellon',
-          'mellon_api'
-      ],
-      tests_require=[
-      ],
-      entry_points={
-          'console_scripts':['mellon_gui=mellon_gui.app:main'],
-          'zc.buildout': ['ember = mellon_gui.recipes.ember:Ember']
-          },
-      )
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.txt')) as f:
+    README = f.read()
+with open(os.path.join(here, 'CHANGES.txt')) as f:
+    CHANGES = f.read()
+
+requires = [
+    'zope.component',
+    'zope.interface',
+    'pyramid',
+    'pyramid_tm',
+    'pyramid_zcml',
+    'pyramid_chameleon',
+    'pyramid_debugtoolbar',
+    'waitress',
+    'zope.sqlalchemy',
+    'passlib',
+    'sparc.login',
+    'sparc.utils',
+    'mellon'
+]
+
+tests_require = [
+    'WebTest >= 1.3.1',  # py3 compat
+    'pytest',
+    'pytest-cov',
+]
+
+setup(
+    name='mellon_gui',
+    version='0.0',
+    description='mellon_gui',
+    long_description=README + '\n\n' + CHANGES,
+    classifiers=[
+        'Programming Language :: Python',
+        'Framework :: Pyramid',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: WSGI :: Application',
+    ],
+    author='',
+    author_email='',
+    url='',
+    keywords='web pyramid pylons',
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
+    extras_require={
+        'testing': tests_require,
+    },
+    install_requires=requires,
+    entry_points={
+        'paste.app_factory': [
+            'main = mellon_gui:main',
+        ]
+    },
+)

@@ -1,0 +1,11 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_gui.auth">
+  
+    <utility
+        provides="sparc.login.credentials.authn.crypt.ICrypter"
+        component=".crypt.user_password_crypt_context"
+        />
+  
+</configure>

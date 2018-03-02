@@ -1,0 +1,5 @@
+<configure xmlns="http://pylonshq.com/pyramid">
+   
+    <subscriber handler=".bind_sa_to_app.create_and_register_sa_utils" />
+
+</configure>

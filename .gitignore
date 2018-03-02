@@ -64,7 +64,7 @@ src_ext/
 .mr.developer.cfg
 
 # Apple
-.DS_store
+*/.DS_store
 
 # Ember
 tmp/

@@ -1,0 +1,31 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon_gui.auth">
+
+    <include package=".subscribers" />
+    
+    <adapter
+        provides="sparc.login.credentials.authn.IPasswordHashToken"
+        for="sparc.login.credentials.ICredentialIdentity"
+        factory=".password.SAPasswordHashToken"
+        />
+    
+    <adapter
+        provides="sparc.login.principal.IPrincipal"
+        for="sparc.login.credentials.ICredentialIdentity"
+        factory=".username.PrincipalFromCredentialIdentity"
+        />
+    
+    <utility
+        provides="sparc.login.principal.IPrincipalManager"
+        factory=".principal.SessionPrincipalManager"
+        />
+    
+    <utility
+        provides="sparc.login.credentials.ICredentialIdentityManager"
+        factory=".username.SessionCredentialIdentityManager"
+        />
+
+    
+</configure>

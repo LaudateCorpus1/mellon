@@ -1,0 +1,16 @@
+#PyramidAuthTktAuthenticationPolicy
+# This accepts most keyword arguments for pyramid.authentication.AuthTktAuthenticationPolicy().
+# These will be passed into the 
+PyramidAuthTktAuthenticationPolicy:
+ secret: your_unique_secret_to_crypt_the_ticket
+ cookie_name: auth_tkt
+ secure: False
+ include_ip: False
+ timeout: 
+ reissue_time:
+ max_age:
+ http_only: False
+ wild_domain: True
+ parent_domain: False
+ domain:
+ hashalg: sha512
