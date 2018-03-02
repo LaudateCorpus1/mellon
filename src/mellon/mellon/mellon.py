@@ -61,10 +61,13 @@ def create_app(config, verbose=False, debug=False):
     app.set_config(config)
     return app
     
-def create_and_register_app(config, verbose=False, debug=False):
-    app = create_app(config, verbose, debug)
+def register_app(app):
     sm = component.getSiteManager()
     sm.registerUtility(app, IMellonApplication) #give components access to app config
+
+def create_and_register_app(config, verbose=False, debug=False):
+    app = create_app(config, verbose, debug)
+    register_app(app)
     return app
 
 def get_registered_app():
