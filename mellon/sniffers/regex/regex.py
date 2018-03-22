@@ -22,7 +22,7 @@ class RegExSecretSniffer(object):
             if type_ in conf_regex['pattern_files']:
                 logger.debug(u"found pattern file {}, looking for regex patterns to load ...".format(conf_regex['pattern_files'][type_]))
                 with open(conf_regex['pattern_files'][type_]) as f:
-                    for pattern in f:
+                    for pattern in f.read().splitlines():
                         types = [type_] if type_ in ('byte', 'unicode', ) else ['byte', 'unicode']
                         for t in types:
                             logger.debug(u"loading pattern '{}' into {} Regex secret sniffer".format(pattern, t))
