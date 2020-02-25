@@ -37,7 +37,7 @@ class MellonUnicodeFileFromFilePathAndConfig(object):
         _end = 0
         _buffer = collections.deque()
         _eof_buffer = collections.deque()
-        with open(str(self.file_path), 'rU') as stream:
+        with open(str(self.file_path), 'r') as stream:
             file_ = component.createObject(u'mellon.unicode_file_from_stream', stream, self.config)
             for snippet in file_:
                 yield snippet

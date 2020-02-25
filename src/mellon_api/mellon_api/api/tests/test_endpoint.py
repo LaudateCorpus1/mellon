@@ -25,17 +25,17 @@ class MellonApiAuthorizationContextTestCase(unittest.TestCase):
     
     def test_get_single(self):
         json = self.layer.get_json(self.endpoint+'/authorization_context_1')
-        self.assertEquals(json['data']['type'], 'authorization_context')
-        self.assertEquals(json['data']['attributes']['name'], 'authorization context 1')
+        self.assertEqual(json['data']['type'], 'authorization_context')
+        self.assertEqual(json['data']['attributes']['name'], 'authorization context 1')
     
     def test_get_page_default(self):
         json = self.layer.get_json(self.endpoint)
-        self.assertEquals(len(json['data']), self.layer.config['ResourcePagination']['max_limit'])
+        self.assertEqual(len(json['data']), self.layer.config['ResourcePagination']['max_limit'])
     
     def test_get_page_2(self):
         json = self.layer.get_json(self.endpoint+'?arg1=value1&arg2=value2&arg1=value3')
         json = self.layer.get_json(json['links']['next'])
-        self.assertEquals(len(json['data']), self.model_count - self.layer.config['ResourcePagination']['max_limit'])
+        self.assertEqual(len(json['data']), self.model_count - self.layer.config['ResourcePagination']['max_limit'])
     
 
 class test_suite(object):

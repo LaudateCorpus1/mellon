@@ -29,7 +29,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
                             filter(
                                 models.SecretStatus.secret_id == self.models['Secret'].id).\
                                 first()
-        self.assertEquals(status.token, 'token_1')
+        self.assertEqual(status.token, 'token_1')
         
     def test_model_SecretSeverity(self):
         status = models.SecretSeverity(token='token_A', secret_id=self.models['Secret'].id)
@@ -40,7 +40,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
                             filter(
                                 models.SecretSeverity.secret_id == self.models['Secret'].id).\
                                 first()
-        self.assertEquals(status.token, 'token_A')
+        self.assertEqual(status.token, 'token_A')
     
 
 class test_suite(test_suite_mixin):

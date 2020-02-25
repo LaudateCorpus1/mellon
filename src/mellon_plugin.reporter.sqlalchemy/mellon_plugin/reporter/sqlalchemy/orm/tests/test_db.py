@@ -27,15 +27,15 @@ class MellonOrmReporterTestCase(unittest.TestCase):
     
     def test_reporter(self):
         # now check orm
-        self.assertEquals(len(self.layer.session.query(models.AuthorizationContext).all()), 1)
-        self.assertEquals(len(self.layer.session.query(models.MellonFile).all()), 2)
-        self.assertEquals(len(self.layer.session.query(models.MellonFileAccessContext).all()), 2)
-        self.assertEquals(len(self.layer.session.query(models.Snippet).all()), 2)
-        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2)
-        self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 2)
+        self.assertEqual(len(self.layer.session.query(models.AuthorizationContext).all()), 1)
+        self.assertEqual(len(self.layer.session.query(models.MellonFile).all()), 2)
+        self.assertEqual(len(self.layer.session.query(models.MellonFileAccessContext).all()), 2)
+        self.assertEqual(len(self.layer.session.query(models.Snippet).all()), 2)
+        self.assertEqual(len(self.layer.session.query(models.Secret).all()), 2)
+        self.assertEqual(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 2)
     
     def test_repeated_secret(self):
-        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2)
+        self.assertEqual(len(self.layer.session.query(models.Secret).all()), 2)
         _tripper = False
         reset_test_sniffer()
         for secret in memory_report:
@@ -43,20 +43,20 @@ class MellonOrmReporterTestCase(unittest.TestCase):
             event.notify(mellon.events.SnippetAvailableForSecretsSniffEvent(snippet))
             _tripper = True
         self.assertTrue(_tripper) #make sure loop ran ok
-        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2) #no new secrets.
+        self.assertEqual(len(self.layer.session.query(models.Secret).all()), 2) #no new secrets.
         
         #now we'll just verify that the events were indeed ok by wiping the DB and trying again
         for secret_discovery_date in self.layer.session.query(models.SecretDiscoveryDate).all():
             self.layer.session.delete(secret_discovery_date)
-        self.assertEquals(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 0)
+        self.assertEqual(len(self.layer.session.query(models.SecretDiscoveryDate).all()), 0)
         for secret_model in self.layer.session.query(models.Secret).all():
             self.layer.session.delete(secret_model)
-        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 0)
+        self.assertEqual(len(self.layer.session.query(models.Secret).all()), 0)
         reset_test_sniffer()
         for secret in memory_report:
             snippet = secret.__parent__
             event.notify(mellon.events.SnippetAvailableForSecretsSniffEvent(snippet))
-        self.assertEquals(len(self.layer.session.query(models.Secret).all()), 2) #the entries should be added this time around
+        self.assertEqual(len(self.layer.session.query(models.Secret).all()), 2) #the entries should be added this time around
         
 
 class test_suite(test_suite_mixin):

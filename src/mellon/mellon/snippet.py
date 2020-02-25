@@ -1,6 +1,6 @@
 from zope.component.factory import Factory
 from zope import interface
-from zope.schema._compat import make_binary, u
+from zope.schema._compat import make_binary
 from . import IBytesSnippet
 from . import IUnicodeSnippet
 
@@ -18,7 +18,7 @@ bytesSnippetFactory = Factory(BytesSnippet)
 class UnicodeSnippet(object):
     
     def __init__(self, snippet=u'', name=None, parent=None):
-        self.data = u(snippet) # PY2 will convert into unicode
+        self.data = snippet
         #zope.location.ILocation
         self.__name__ = name
         self.__parent__ = parent

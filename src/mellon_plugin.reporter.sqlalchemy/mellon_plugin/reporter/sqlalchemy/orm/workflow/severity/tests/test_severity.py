@@ -14,7 +14,7 @@ class MellonOrmWorkflowStatusTestCase(unittest.TestCase):
     def test_severity(self):
         #verify we can read available statuses from utility appropriately
         items = list(component.getUtility(IConfiguredAssignablesSeverities).items())
-        self.assertEquals(items[0][1], 'token_a')
+        self.assertEqual(items[0][1], 'token_a')
 
 
 class test_suite(test_suite_mixin):

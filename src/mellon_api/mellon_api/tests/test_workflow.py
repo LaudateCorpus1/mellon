@@ -19,15 +19,15 @@ class MellonApiSecretsTestCase(unittest.TestCase):
     
     def test_secret(self):
         json = self.layer.get_json(self.endpoint+'/secret_1')
-        self.assertEquals(json['name'], 'secret 1')
+        self.assertEqual(json['name'], 'secret 1')
     
     def test_secret_collection(self):
         json = self.layer.get_json(self.endpoint+'?results_per_page='+str(self.model_count))
-        self.assertEquals(len(json['objects']), self.model_count)
+        self.assertEqual(len(json['objects']), self.model_count)
     
     def test_secret_status(self):
         _json = self.layer.get_json(self.endpoint+'/secret_1')
-        self.assertEquals(_json['status_token'], '')
+        self.assertEqual(_json['status_token'], '')
         
         r = self.layer.client.patch(
                 self.endpoint+'/secret_1',
@@ -36,11 +36,11 @@ class MellonApiSecretsTestCase(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         
         _json = self.layer.get_json(self.endpoint+'/secret_1')
-        self.assertEquals(_json['status_token'], 'status_2')
+        self.assertEqual(_json['status_token'], 'status_2')
     
     def test_secret_severity(self):
         _json = self.layer.get_json(self.endpoint+'/secret_1')
-        self.assertEquals(_json['severity_token'], '')
+        self.assertEqual(_json['severity_token'], '')
         
         r = self.layer.client.patch(
                 self.endpoint+'/secret_1',
@@ -49,7 +49,7 @@ class MellonApiSecretsTestCase(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         
         _json = self.layer.get_json(self.endpoint+'/secret_1')
-        self.assertEquals(_json['severity_token'], 'severity_2')
+        self.assertEqual(_json['severity_token'], 'severity_2')
     
 class test_suite(object):
     layer = testing.MELLON_API_RUNTIME_LAYER

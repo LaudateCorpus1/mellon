@@ -33,14 +33,14 @@ class MellonORMReporterTestCase(unittest.TestCase):
         self.layer.session.flush()
         
         auth_context1 = self.layer.session.query(models.AuthorizationContext).get('auth_id1')
-        self.assertEquals(auth_context1.id, 'auth_id1')
+        self.assertEqual(auth_context1.id, 'auth_id1')
     
     def test_model_MellonFile(self):
         mfile1 = models.MellonFile(id='mfile1')
         self.layer.session.add(mfile1)
         
         mfile1 = self.layer.session.query(models.MellonFile).first()
-        self.assertEquals(mfile1.id, 'mfile1')
+        self.assertEqual(mfile1.id, 'mfile1')
     
     def test_model_MellonFile_uniqueness_1(self):
         #can't add 2 files with same id and auth context
@@ -77,8 +77,8 @@ class MellonORMReporterTestCase(unittest.TestCase):
         
         self.layer.session.flush()
         access_context1 = self.layer.session.query(models.MellonFileAccessContext).first()
-        self.assertEquals(access_context1.mellon_file_id, mfile1.id)
-        self.assertEquals(access_context1.authorization_context_id, auth_context1.id)
+        self.assertEqual(access_context1.mellon_file_id, mfile1.id)
+        self.assertEqual(access_context1.authorization_context_id, auth_context1.id)
     
     def test_model_Snippet_1(self):
         snippet1 = models.Snippet(name='snippet_name1') #foreign key fail
@@ -95,7 +95,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
         snippet1.mellon_file_id = mfile1.id
         self.layer.session.add(snippet1)
         snippet1 = self.layer.session.query(models.Snippet).first()
-        self.assertEquals(snippet1.id, 1)
+        self.assertEqual(snippet1.id, 1)
     
     def test_model_Secret(self):
         mfile1 = models.MellonFile(id='mfile1')
@@ -109,7 +109,7 @@ class MellonORMReporterTestCase(unittest.TestCase):
         self.layer.session.flush()
         
         secret1 = self.layer.session.query(models.Secret).first()
-        self.assertEquals(secret1.id, '1')
+        self.assertEqual(secret1.id, '1')
     
     def test_model_DiscoveryDate_1(self):
         #invalid entries won't go (foreign key fail)
@@ -144,8 +144,8 @@ class MellonORMReporterTestCase(unittest.TestCase):
         self.layer.session.flush()
         
         discovery1 = self.layer.session.query(models.SecretDiscoveryDate).first()
-        self.assertEquals(discovery1.secret_id, secret1.id)
-        self.assertEquals(discovery1.datetime, now)
+        self.assertEqual(discovery1.secret_id, secret1.id)
+        self.assertEqual(discovery1.datetime, now)
         
         #duplicates fail
         discovery2 = models.SecretDiscoveryDate(datetime=now,secret_id=secret1.id)

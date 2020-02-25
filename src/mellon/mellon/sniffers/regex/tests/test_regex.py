@@ -47,7 +47,7 @@ class MellonSnifferRegExTestCase(unittest.TestCase):
     
     def test_regex(self):
         # we'll perform a basic check...this could be dramatically improved :(
-        self.assertEquals(len(memory.report), 4)
+        self.assertEqual(len(memory.report), 4)
 
 class test_suite(test_suite_mixin):
     layer = MELLON_SNIFFER_REGEX_EXECUTED_LAYER

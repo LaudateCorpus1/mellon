@@ -39,7 +39,7 @@ class MellonApiAuthTestCase(unittest.TestCase):
     
     def test_preprocessor_injection(self):
         pp = component.getUtility(mellon_api.IFlaskRestApiPreprocessors)
-        self.assertEquals(pp[0], api_authentication_preprocessor)
+        self.assertEqual(pp[0], api_authentication_preprocessor)
     
     def test_basic_auth_provider(self):
         self.manager.create('user1', 'password1')

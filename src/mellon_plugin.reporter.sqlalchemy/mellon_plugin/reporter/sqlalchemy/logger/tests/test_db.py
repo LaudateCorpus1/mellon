@@ -23,7 +23,7 @@ class MellonSAReporterTestCase(unittest.TestCase):
         #self.assertFalse(self.layer.reporter.initialized())
         #self.layer.reporter.update_schema()
         self.assertTrue(self.layer.reporter.initialized())
-        self.assertEquals(len(self.get_rows()), 2)
+        self.assertEqual(len(self.get_rows()), 2)
         
 
 class test_suite(test_suite_mixin):
