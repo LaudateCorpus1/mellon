@@ -8,6 +8,7 @@ from mellon_gui.auth.testing import MELLON_WEB_APP_AUTH_RUNTIME_LAYER
 
 from sparc.login.credentials.authn import IPasswordHashToken
 from sparc.login.credentials.authn.crypt import ICrypter
+from sparc.login.credentials.exceptions import UnknownIdentity
 from .. import models
 
 class MellonWebAppPasswordTestCase(unittest.TestCase):
@@ -31,7 +32,7 @@ class MellonWebAppPasswordTestCase(unittest.TestCase):
     def test_password_adaptation(self):
         #create an invalid credential identity
         id1 = component.createObject(u'sparc.login.credential_identity', '1')
-        with self.assertRaises(TypeError): #unable to adapt
+        with self.assertRaises(UnknownIdentity): #unable to adapt
             IPasswordHashToken(id1)
         
         #create an associated db user

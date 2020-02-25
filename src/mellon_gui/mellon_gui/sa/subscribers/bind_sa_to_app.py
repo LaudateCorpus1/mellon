@@ -1,15 +1,12 @@
 from zope import component
 from zope import interface
-from zope.interface.interfaces import IRegistrationEvent
-from zope.sqlalchemy import ZopeTransactionExtension
+from zope.sqlalchemy import register
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from pyramid.interfaces import IApplicationCreated
 from pyramid.threadlocal import get_current_registry
 from .. import ISAEngine, ISASession
-from mellon import IMellonApplication
 from mellon_plugin.reporter.sqlalchemy.orm import db
-from ..models import Base
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
@@ -31,7 +28,8 @@ def create_and_register_sa_utils(app):
         logger.debug("ISAEngine engine already available, no need to create and register a new one.")
     
     if not sm.queryUtility(ISASession):
-        session_factory = sessionmaker(extension=ZopeTransactionExtension()) #integrate with Pyramid transaction machinery
+        session_factory = sessionmaker() 
+        register(session_factory) #integrate with Pyramid transaction machinery
         Session = scoped_session(session_factory) #thread-local sessions
         Session.configure(bind=engine)
         interface.alsoProvides(Session, ISASession)
