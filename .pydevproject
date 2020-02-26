@@ -2,7 +2,6 @@
 <?eclipse-pydev version="1.0"?><pydev_project>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
 <path>/${PROJECT_DIR_NAME}/src/mellon</path>
-<path>/${PROJECT_DIR_NAME}/parts/omelette</path>
 <path>/${PROJECT_DIR_NAME}/src/mellon_plugin.factory.confluence</path>
 <path>/${PROJECT_DIR_NAME}/src/mellon_plugin.factory.git</path>
 <path>/${PROJECT_DIR_NAME}/src/mellon_plugin.factory.stash</path>
@@ -12,6 +11,6 @@
 <path>/${PROJECT_DIR_NAME}/src/mellon_api</path>
 <path>/${PROJECT_DIR_NAME}/src/mellon_gui</path>
 </pydev_pathproperty>
-<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 2.7</pydev_property>
+<pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python interpreter</pydev_property>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">Default</pydev_property>
 </pydev_project>
