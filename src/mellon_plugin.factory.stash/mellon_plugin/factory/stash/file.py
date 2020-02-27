@@ -28,11 +28,12 @@ class MellonFileProviderFromStashConfig(object):
         sec_context.identity = \
                 container.IPyContainerConfigValue(
                     self.config['StashProjectRepos']['StashConnection']).get(
-                        'username', '')
+                        'username', default='')
         sec_context.description = \
                 container.IPyContainerConfigValue(
                     self.config['StashProjectRepos']['StashConnection']).get(
-                        'context', '')
+                        'context', default='')
+        return sec_context
     
     def __iter__(self):
         """
