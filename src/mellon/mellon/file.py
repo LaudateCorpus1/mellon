@@ -14,10 +14,11 @@ DEFAULT_snippet_bytes_coverage = 8
 @interface.implementer(IByteMellonFile)
 class MellonByteFileFromFileStreamAndConfig(object):
     
-    def __init__(self, file_stream, config, snippet_interfaces=None):
+    def __init__(self, file_stream, config, snippet_interfaces=None, parent_override=None):
         self.file_stream = file_stream
         self.config = config
         self.snippet_interfaces = snippet_interfaces
+        self._parent_override = parent_override or self
         
         snippet_config = container.\
                             IPyContainerConfigValue(config).get('MellonSnippet')
@@ -38,7 +39,7 @@ class MellonByteFileFromFileStreamAndConfig(object):
         snippet = component.createObject(u'mellon.bytes_snippet', 
                             snippet=b"".join(buffer),
                             name=u'position {} for {} bytes'.format(start, length),
-                            parent=self)
+                            parent=self._parent_override)
         if self.snippet_interfaces:
             interface.alsoProvides(snippet, *self.snippet_interfaces)
         return snippet
@@ -80,10 +81,11 @@ mellonByteFileFromFileStreamAndConfigFactory = Factory(MellonByteFileFromFileStr
 @interface.implementer(IUnicodeMellonFile)
 class MellonUnicodeFileFromFileStreamAndConfig(object):
     
-    def __init__(self, file_stream, config, snippet_interfaces=None):
+    def __init__(self, file_stream, config, snippet_interfaces=None, parent_override=None):
         self.file_stream = file_stream
         self.config = config
         self.snippet_interfaces = snippet_interfaces
+        self._parent_override = parent_override or self
         
         snippet_config = container.\
                             IPyContainerConfigValue(config).get('MellonSnippet')
@@ -101,7 +103,7 @@ class MellonUnicodeFileFromFileStreamAndConfig(object):
         snippet = component.createObject(u'mellon.unicode_snippet', 
                             snippet=u"".join(buffer),
                             name=u'starting at line {} for {} lines'.format(start, len(buffer)),
-                            parent=self)
+                            parent=self._parent_override)
         if self.snippet_interfaces:
             interface.alsoProvides(snippet, *self.snippet_interfaces)
         return snippet

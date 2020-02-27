@@ -9,16 +9,17 @@ import mellon
 @interface.implementer(mellon.IByteMellonFile)
 class MellonByteFileFromFilePathAndConfig(object):
     
-    def __init__(self, file_path, config):
+    def __init__(self, file_path, config, parent_override=None):
         self.file_path = file_path
         self.config = config
+        self._parent_override = parent_override or self
         
     def __str__(self):
         return "byte file at location {}".format(self.file_path)
 
     def __iter__(self):
         with open(self.file_path, 'rb') as stream:
-            file_ = component.createObject(u'mellon.byte_file_from_stream', stream, self.config)
+            file_ = component.createObject(u'mellon.byte_file_from_stream', stream, self.config, parent_override=self._parent_override)
             for snippet in file_:
                 yield snippet
 mellonByteFileFromFilePathAndConfigFactory = Factory(MellonByteFileFromFilePathAndConfig)
@@ -26,9 +27,10 @@ mellonByteFileFromFilePathAndConfigFactory = Factory(MellonByteFileFromFilePathA
 @interface.implementer(mellon.IUnicodeMellonFile)
 class MellonUnicodeFileFromFilePathAndConfig(object):
     
-    def __init__(self, file_path, config):
+    def __init__(self, file_path, config, parent_override=None):
         self.file_path = file_path
         self.config = config
+        self._parent_override = parent_override or self
         
     def __str__(self):
         return "Unicode file at location {}".format(self.file_path)
@@ -38,7 +40,7 @@ class MellonUnicodeFileFromFilePathAndConfig(object):
         _buffer = collections.deque()
         _eof_buffer = collections.deque()
         with open(str(self.file_path), 'r') as stream:
-            file_ = component.createObject(u'mellon.unicode_file_from_stream', stream, self.config)
+            file_ = component.createObject(u'mellon.unicode_file_from_stream', stream, self.config, parent_override=self._parent_override)
             for snippet in file_:
                 yield snippet
 mellonUnicodeFileFromFilePathAndConfigFactory = Factory(MellonUnicodeFileFromFilePathAndConfig)

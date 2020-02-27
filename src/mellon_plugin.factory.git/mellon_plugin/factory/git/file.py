@@ -12,10 +12,11 @@ from mellon.factories.filesystem.file import \
 class MellonByteFileFromGitRepoCommitPathAndConfig(
                                         MellonByteFileFromFilePathAndConfig):
     
-    def __init__(self, commit, file_path, config):
+    def __init__(self, commit, file_path, config, parent_override=None):
         self.commit = commit
+        self._parent_override = parent_override or self
         super(MellonByteFileFromGitRepoCommitPathAndConfig, self).\
-                                                    __init__(file_path, config)
+                                                    __init__(file_path, config, parent_override=self._parent_override)
         
     def __str__(self):
         return "Git byte file in repo at {} for commit {} at location {}".\
@@ -28,10 +29,11 @@ mellonByteFileFromGitRepoCommitPathAndConfigFactory = \
 class MellonUnicodeFileFromGitRepoCommitPathAndConfig(
                                         MellonUnicodeFileFromFilePathAndConfig):
     
-    def __init__(self, commit, file_path, config):
+    def __init__(self, commit, file_path, config, parent_override=None):
         self.commit = commit
+        self._parent_override = parent_override or self
         super(MellonUnicodeFileFromGitRepoCommitPathAndConfig, \
-                                            self).__init__(file_path, config)
+                                            self).__init__(file_path, config, parent_override=self._parent_override)
         
     def __str__(self):
         return "Git unicode file in repo at {} for commit {} at location {}".\
