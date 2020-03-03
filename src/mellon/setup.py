@@ -45,6 +45,7 @@ setup(name='mellon',
           'zope.schema',
           'zope.security',
           'sparc.configuration',
+          'sparc.config',
           'sparc.logging',
       ],
       tests_require=[
