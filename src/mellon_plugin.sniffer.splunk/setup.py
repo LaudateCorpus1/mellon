@@ -38,7 +38,7 @@ setup(name='mellon_plugin.sniffer.splunk',
           'mellon',
           'zope.component',
           'zope.interface',
-          'sparc.configuration',
+          'sparc.config',
           'sparc.logging',
       ],
       tests_require=[

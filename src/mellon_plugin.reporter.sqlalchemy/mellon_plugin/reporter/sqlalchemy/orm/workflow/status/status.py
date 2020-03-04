@@ -8,6 +8,6 @@ from .interfaces import IConfiguredAssignablesStatuses
 class ConfiguredAssignablesStatuses(object):
     def items(self):
         m = get_registered_app()
-        terms = m['vgetter'].get('MellonWorkflowSecretAssignableStatuses')
+        terms = m['vgetter'].get_value('MellonWorkflowSecretAssignableStatuses')
         for t in terms:
             yield (t['value'], t['token'], t['description'])

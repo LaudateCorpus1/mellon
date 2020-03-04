@@ -10,7 +10,7 @@ class MellonSAReporterTestCase(unittest.TestCase):
     layer = MELLON_SA_LOGGER_REPORTER_EXECUTED_LAYER
 
     def get_rows(self):
-        connection = self.layer.reporter.engine.connect()
+        connection = self.layer.reporter.initializer.engine.connect()
         _return = []
         result = connection.execute(sql.select([self.layer.reporter.tables['secrets']]))
         for row in result:
@@ -22,7 +22,7 @@ class MellonSAReporterTestCase(unittest.TestCase):
     def test_reporter(self):
         #self.assertFalse(self.layer.reporter.initialized())
         #self.layer.reporter.update_schema()
-        self.assertTrue(self.layer.reporter.initialized())
+        self.assertTrue(self.layer.reporter.initializer.initialized())
         self.assertEqual(len(self.get_rows()), 2)
         
 

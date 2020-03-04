@@ -2,7 +2,6 @@ import os.path
 from zope import component
 from zope import interface
 from zope.component.factory import Factory
-from sparc.configuration import container
 import mellon
 from mellon.factories.filesystem.file import MellonByteFileFromFilePathAndConfig
 from mellon.factories.filesystem.file import \
@@ -50,15 +49,14 @@ class MellonFileProviderForGitReposBaseDirectory(object):
         """Init
         
         Args:
-            config: sparc.configuration.container.ISparcAppPyContainerConfiguration
+            config: sparc.config.IConfigContainer
                     provider with sparc.git[configure.yaml:GitReposBaseDir]
                     and mellon[configure.yaml:MellonSnippet] entries.
         """
         self.config = config
     
     def __iter__(self):
-        repos_base_dir = container.IPyContainerConfigValue(self.config).\
-                                            get('GitReposBaseDir')['directory']
+        repos_base_dir = self.config.mapping().get_value('GitReposBaseDir')['directory']
         
         repo_iter = component.createObject(\
                 u'sparc.git.repos.repos_from_recursive_dir', repos_base_dir)

@@ -3,6 +3,7 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon_plugin.factory.web_crawler">
     
+    <include package="zope.security"/>
     <include package=".subscribers" />
 
     <class class='scrapy.spiders.Spider'>

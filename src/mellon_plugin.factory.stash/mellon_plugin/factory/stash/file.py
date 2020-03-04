@@ -1,7 +1,7 @@
 from zope import component
 from zope import interface
 from zope.component.factory import Factory
-from sparc.configuration import container
+from sparc.config.container import SparcConfigContainer
 from mellon import IApplyAuthorizationContext
 from mellon import IMellonFileProvider
 from mellon import IMellonFileProviderFactory
@@ -16,7 +16,7 @@ class MellonFileProviderFromStashConfig(object):
         """Init
         
         Args:
-            config: sparc.configuration.container.ISparcAppPyContainerConfiguration
+            config: sparc.config.IConfigContainer
                     provider with sparc.git.stash[configure.yaml:StashProjectRepos] entry
         """
         self.sm = component.getSiteManager()
@@ -25,13 +25,9 @@ class MellonFileProviderFromStashConfig(object):
     
     def authorization_context(self):
         sec_context = component.createObject(u'mellon.authorization_context', )
-        sec_context.identity = \
-                container.IPyContainerConfigValue(
-                    self.config['StashProjectRepos']['StashConnection']).get(
+        sec_context.identity = self.config.mapping()['StashProjectRepos']['StashConnection'].get(
                         'username', default='')
-        sec_context.description = \
-                container.IPyContainerConfigValue(
-                    self.config['StashProjectRepos']['StashConnection']).get(
+        sec_context.description = self.config.mapping()['StashProjectRepos']['StashConnection'].get(
                         'context', default='')
         return sec_context
     
@@ -62,13 +58,13 @@ class MellonFileProviderFromStashConfig(object):
         # and MellonSnippet.  We have both of those...but not in the same 
         # namespace.  We'll create a new config that contains our desired 
         # values.
-        config = component.createObject(u'sparc.configuration.container.dict')
+        config = {}
         config['GitReposBaseDir'] = self.config['StashProjectRepos']['GitReposBaseDir']
         config['MellonSnippet'] = self.config['MellonSnippet']
         
         git_file_provider = component.createObject(\
                     u'mellon_plugin.factory.git.file_provider_from_git_repos_base_directory',
-                    config)
+                    SparcConfigContainer(config))
         for f in git_file_provider:
             self.sm.getUtility(IApplyAuthorizationContext)(self.security_context, f)
             yield f

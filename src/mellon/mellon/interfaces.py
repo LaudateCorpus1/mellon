@@ -3,16 +3,17 @@ from zope import interface
 from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.interface.interfaces import IObjectEvent
 from zope import location
-from sparc.configuration.container import ISparcPyContainerConfiguredApplication
 
 #EVENTS
+class IMellonApplicationConfiguredEvent(IObjectEvent):
+    """A Mellon application object has been configured"""
 class ISnippetAvailableForSecretsSniffEvent(IObjectEvent):
     """An object providing ISnippet is ready to be sniffed for secrets"""
 class ISecretDiscoveredEvent(IObjectEvent):
     """An object providing ISecret has been discovered"""
 
 #APPLICATION & FACTORIES
-class IMellonApplication(ISparcPyContainerConfiguredApplication):
+class IMellonApplication(interface.Interface):
     """The Application"""
     verbose = interface.Attribute("True indicates app should with verbose logging")
     debug = interface.Attribute("True indicates app should with debug logging")

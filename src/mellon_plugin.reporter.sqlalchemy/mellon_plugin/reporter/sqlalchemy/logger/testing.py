@@ -17,12 +17,10 @@ class MellonLoggerRuntimeReporterLayer(MellonApplicationRuntimeLayer):
                  },
              'MellonFileProviderFactory':
                 {'name': 'mellon.factories.test.file_provider_for_testing'},
-             'ZCMLConfiguration':
-                [
-                    {'package':'mellon.sniffers.test'},
-                    {'package':'mellon.factories.test'},
-                    {'package':'mellon_plugin.reporter.sqlalchemy.logger'}
-                 ]
+             'ZopeComponentConfiguration':
+                {
+                 'zcml': [ {'package': 'mellon_plugin.reporter.sqlalchemy.logger', 'file': 'ftesting.zcml'}]
+                }
             }
         super(MellonLoggerRuntimeReporterLayer, self).setUp()
         self.reporter = component.getUtility(IDBReporter)

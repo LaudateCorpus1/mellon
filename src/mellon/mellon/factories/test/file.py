@@ -19,7 +19,7 @@ def get_default_mellon_test_files():
              }
         
         }
-    config = component.createObject(u'sparc.configuration.container', config)
+    config = component.createObject(u'sparc.config.container', config)
     
     files = []
     files.append(\

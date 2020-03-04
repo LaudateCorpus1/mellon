@@ -75,8 +75,10 @@ class MellonFactoriesFilesystemRuntimeLayer(MellonApplicationRuntimeLayer):
                            {
                             'directory': self.working_dir
                            },
-                        'ZCMLConfiguration':
-                            [{'package':'mellon.factories.filesystem'}]
+                        'ZopeComponentConfiguration':
+                            {
+                             'zcml': [ {'package': 'mellon.factories.filesystem', 'file': 'ftesting.zcml'}]
+                            }
                       }
         super(MellonFactoriesFilesystemRuntimeLayer, self).setUp()
     

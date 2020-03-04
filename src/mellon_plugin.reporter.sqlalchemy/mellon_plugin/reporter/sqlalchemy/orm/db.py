@@ -14,8 +14,8 @@ _Session = None
 _session = None
 def create_engine():
     m = mellon.mellon.get_registered_app()
-    _dsn = m['vgetter'].get('SQLAlchemyORMReporter','SQLAlchemyReporter','SQLAlchemyEngine','dsn')
-    _kwargs = m['vgetter'].get('SQLAlchemyORMReporter','SQLAlchemyReporter','SQLAlchemyEngine','kwargs', default={})
+    _dsn = m['vgetter'].get_value('SQLAlchemyORMReporter','SQLAlchemyReporter','SQLAlchemyEngine','dsn')
+    _kwargs = m['vgetter'].get_value('SQLAlchemyORMReporter','SQLAlchemyReporter','SQLAlchemyEngine','kwargs', default={})
     if m['app'].debug:
         _kwargs['echo'] = True
     return sqlalchemy.create_engine(_dsn, **_kwargs)
@@ -41,7 +41,7 @@ def get_session():
 def orm_reporter_for_secret(event):
     m = mellon.mellon.get_registered_app()
     now = datetime.now()
-    if m['vgetter'].get('SQLAlchemyORMReporter', 'SQLAlchemyReporter', 
+    if m['vgetter'].get_value('SQLAlchemyORMReporter', 'SQLAlchemyReporter', 
                                                     'utc_time', default=False):
         now = datetime.utcnow()
     session = get_session()

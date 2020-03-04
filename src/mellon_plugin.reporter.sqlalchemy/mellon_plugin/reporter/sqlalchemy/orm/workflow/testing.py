@@ -7,10 +7,10 @@ class MellonOrmRuntimeWorkflowLayer(MellonOrmRuntimeReporterLayer):
     def setUp(self, config=None):
         _config = \
             {
-             'ZCMLConfiguration':
-                [
-                    {'package':'mellon_plugin.reporter.sqlalchemy.orm.workflow'}
-                ]
+             'ZopeComponentConfiguration':
+                {
+                 'zcml': [ {'package': 'mellon_plugin.reporter.sqlalchemy.orm.workflow', 'file': 'ftesting.zcml'}]
+                }
             }
         if config:
             _config.update(config)

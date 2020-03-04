@@ -1,7 +1,6 @@
 from entropy import shannon_entropy
 from zope import component
 from zope import interface
-from sparc.configuration import container
 import mellon
 
 from sparc.logging import logging
@@ -15,8 +14,7 @@ class EntropyUnicodeSecretSniffer(object):
     def get_config(cls):
         sm = component.getSiteManager()
         config = sm.getUtility(mellon.IMellonApplication).get_config()
-        return container.IPyContainerConfigValue(config).\
-                                                    get('MellonEntropySniffer')
+        return config.mapping().get_value('MellonEntropySniffer')
         
     config = None
     

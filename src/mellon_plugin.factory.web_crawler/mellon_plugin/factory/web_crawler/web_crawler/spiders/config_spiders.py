@@ -3,7 +3,6 @@ from zope import interface
 import importlib
 from hashlib import md5
 import mellon
-import scrapy
 from scrapy.linkextractors import LinkExtractor
 import scrapy.spiders
 try:
@@ -11,7 +10,6 @@ try:
 except ImportError:
     import urlparse as parse # Py2
 
-from sparc.configuration import container
 from mellon_plugin.factory import web_crawler
 from mellon_plugin.factory.web_crawler.web_crawler.items import WebCrawlerItem
 
@@ -80,7 +78,7 @@ def ScrapySimpleMellonWebsiteCrawlerTypeFromConfigFactory(config):
     to crawl based on a runtime config, not runtime code.
     
     Args:
-        config: sparc.configuration.container.ISparcAppPyContainerConfiguration
+        config: sparc.config.IConfigContainer provider
                 values of ScrapySimpleTextWebsiteCrawler yaml def.
     """
     # get base type information by grabbing first urls entry
@@ -121,8 +119,7 @@ Note:
   component registry with a mellon.IMellonApplication registered utility
 """
 Mellon = component.getUtility(mellon.IMellonApplication)
-v_iter = component.getUtility(container.ISparcPyDictValueIterator)
-for d in v_iter.values(Mellon.get_config(), 'ScrapySimpleTextWebsiteCrawler'):
+for d in Mellon.get_config().sequence('ScrapySimpleTextWebsiteCrawler'):
     new_crawler_type = ScrapySimpleMellonWebsiteCrawlerTypeFromConfigFactory(d)
     interface.alsoProvides(new_crawler_type, web_crawler.IScrapySpider)
     globals()[new_crawler_type.__name__] = new_crawler_type

@@ -5,6 +5,7 @@ from .interfaces import IByteMellonFile
 from .interfaces import IBytesSnippet
 from .interfaces import IFile
 from .interfaces import IMellonApplication
+from .interfaces import IMellonApplicationConfiguredEvent
 from .interfaces import IMellonFile
 from .interfaces import IMellonFileProvider
 from .interfaces import IMellonFileProviderFactory

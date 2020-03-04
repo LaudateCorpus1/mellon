@@ -38,7 +38,7 @@ setup(name='mellon_plugin.factory.git',
           'mellon',
           'zope.component',
           'zope.interface',
-          'sparc.configuration',
+          'sparc.config',
           'sparc.git',
       ],
       tests_require=[

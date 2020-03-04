@@ -1,21 +1,19 @@
 from zope import component
 from zope import interface
-from sparc.configuration import container
 import mellon
 import re
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
-sm = component.getSiteManager()
 
 @interface.implementer(mellon.ISecretSniffer)
 @component.adapter(mellon.ISnippet)
 class RegExSecretSniffer(object):
     @classmethod
     def get_patterns(cls):
+        sm = component.getSiteManager()
         config = sm.getUtility(mellon.IMellonApplication).get_config()
-        conf_regex = container.IPyContainerConfigValue(config).\
-                                                    get('MellonRegexSniffer')
+        conf_regex = config.mapping().get_value('MellonRegexSniffer')
         
         patterns = {'all': [], 'byte': [], 'unicode':[], 'text':[] } #list of dicts
         for type_ in patterns.keys():

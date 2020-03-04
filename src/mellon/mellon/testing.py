@@ -6,21 +6,22 @@ starting layers:
  - An executed layer that runs the mellon application.
 """
 
-from .mellon import create_and_register_app, get_registered_app
-from .interfaces import IMellonApplication
+from .mellon import create_and_register_app
 from .reporters.memory.memory import reset_report
 from .sniffers.test.test import reset_test_sniffer
 import mellon
-from .interfaces import IPath, IBinaryChecker, IMellonApplication
+from .interfaces import IPath, IBinaryChecker
 from sparc.testing.testlayer import SparcZCMLFileLayer
 from zope import component
+import zope.component.hooks
+from zope.component.globalregistry import BaseGlobalComponents
 from zope.component.testlayer import ZCMLLayerBase
 from zope import interface
 
 # A basic layer with Mellon ZCML components registered (does not include the
 # mellon.IMellonApplication runtime component)
 MELLON_INTEGRATION_LAYER = SparcZCMLFileLayer(mellon)
-
+    
 # A layer with a registered and configured, but unexecuted, Mellon application
 class MellonApplicationRuntimeLayer(ZCMLLayerBase):
     """
@@ -55,18 +56,31 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
     """
     verbose = False
     debug = False
-    config = {}
+    config = {
+            'ZopeComponentConfiguration': {
+                    'zcml': [
+                            {'package': 'mellon', 'file': 'ftesting.zcml'}
+                        ]
+                }
+            
+        }
     
     def setUp(self):
+        #install a empty global registry
+        zope.component.hooks.siteinfo.sm = BaseGlobalComponents('MellonTesting')
         super(MellonApplicationRuntimeLayer, self).setUp()
         if self.verbose or self.debug:
-            if 'ZCMLConfiguration' not in self.config:
-                self.config['ZCMLConfiguration'] = []
-            if isinstance(self.config['ZCMLConfiguration'], dict):
-                self.config['ZCMLConfiguration'] = [self.config['ZCMLConfiguration']]
-            self.config['ZCMLConfiguration'].append({'package': 'mellon.reporters.logger'})
+            self.insure_logger_components()
         self.init_mellon_app()
 
+    def insure_logger_components(self):
+        add = True
+        for zcml in self.config['ZopeComponentConfiguration']['zcml']:
+            if zcml.get('package', None) == 'mellon.reporters.logger':
+                add = False
+        if add:
+            self.config['ZopeComponentConfiguration']['zcml'].append({'package': 'mellon.reporters.logger'})
+    
     def tearDown(self):
         reset_report() #added for convenience only...extender's would still need to register the memory reporter zcml
         reset_test_sniffer() #same
@@ -78,6 +92,7 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
         sm.unregisterUtility(component=app, provided=IMellonApplication)
         """
         super(MellonApplicationRuntimeLayer, self).tearDown()
+        zope.component.hooks.setSite() #reset global registry to global found in zope.component.globalregistry
     
     def _load_zcml(self, context):
         """Since the Mellon app does this for us, we need to pass
@@ -86,7 +101,6 @@ class MellonApplicationRuntimeLayer(ZCMLLayerBase):
     
     def init_mellon_app(self):
         self.app = create_and_register_app(self.config, self.verbose, self.debug)
-        self.app.configure()
         
 MELLON_RUNTIME_LAYER = MellonApplicationRuntimeLayer(mellon)
     
@@ -98,6 +112,7 @@ class MellonApplicationExecutedLayer(MellonApplicationRuntimeLayer):
     """
     def setUp(self):
         super(MellonApplicationExecutedLayer, self).setUp()
+        #self.app._pdb = True #uncomment to help debug mellon execution 
         self.app.go()
         
 MELLON_EXECUTED_LAYER = MellonApplicationExecutedLayer(mellon)

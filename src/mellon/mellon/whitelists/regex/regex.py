@@ -1,6 +1,5 @@
 from zope import component
 from zope import interface
-from sparc.configuration import container
 import mellon
 import re
 
@@ -13,8 +12,7 @@ class RegExWhitelistMixin(object):
     @classmethod
     def get_patterns(cls):
         config = sm.getUtility(mellon.IMellonApplication).get_config()
-        conf_regex = container.IPyContainerConfigValue(config).\
-                                                    get('MellonRegexWhitelist')
+        conf_regex = config.mapping().get_value('MellonRegexWhitelist')
         
         patterns = {'all': [], 'file': [], 'secret':[]} #list of dicts
         for type_ in patterns.keys():

@@ -4,9 +4,6 @@
     i18n_domain="mellon_plugin.reporter.sqlalchemy.orm">
     
     <include package="mellon" file="ftesting.zcml" />
-    <include package="mellon.sniffers.test" />
-    <include package="mellon.factories.test" />
-    <include package="mellon.reporters.memory" />
-    <include package="mellon_plugin.reporter.sqlalchemy.orm" />
+    <include package="mellon_plugin.reporter.sqlalchemy.orm.workflow" />
 
 </configure>

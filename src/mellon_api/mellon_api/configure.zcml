@@ -3,7 +3,7 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon_api">
 
-    <include package="sparc.configuration" />
+    <include package="sparc.config" />
     <include package="mellon" />
     <include package=".api" />
     <include package=".sa" />

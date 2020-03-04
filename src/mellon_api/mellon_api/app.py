@@ -37,7 +37,7 @@ def register_flask_app():
     m = get_registered_app()
     sm = component.getSiteManager()
     
-    kwargs = m['vgetter'].get('Flask', 'kwargs', default={})
+    kwargs = m['vgetter'].get_value('Flask', 'kwargs', default={})
     app = flask.Flask('mellon_api', **kwargs)
     interface.alsoProvides(app, mellon_api.IFlaskApplication)
     sm.registerUtility(app, mellon_api.IFlaskApplication) #hookable event
@@ -58,7 +58,7 @@ def register_flask_app():
 
 def configure_flask_app():
     m = get_registered_app()
-    config_settings = m['vgetter'].get('Flask', 'settings', default={})
+    config_settings = m['vgetter'].get_value('Flask', 'settings', default={})
     if 'SECRET_KEY' not in config_settings:
         config_settings['SECRET_KEY'] = os.urandom(24) # sign cookies (and other stuff)
     else:

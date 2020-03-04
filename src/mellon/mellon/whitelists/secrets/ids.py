@@ -1,6 +1,5 @@
 from zope import component
 from zope import interface
-from sparc.configuration import container
 import mellon
 
 from sparc.logging import logging
@@ -12,8 +11,7 @@ class IdWhitelistForSecret(object):
     @classmethod
     def get_ids(cls):
         config = component.getUtility(mellon.IMellonApplication).get_config()
-        conf_ids = container.IPyContainerConfigValue(config).\
-                                                    get('MellonSecretsIdWhitelist')
+        conf_ids = config.mapping().get_value('MellonSecretsIdWhitelist')
         ids = set()
         with open(conf_ids['file']) as f:
             for _id in [h.strip() for h in f]:

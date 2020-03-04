@@ -1,14 +1,13 @@
 from datetime import datetime
-import sqlalchemy
-from sqlalchemy.engine import reflection
 from zope import component
 from zope import interface
+import sqlalchemy
+from sqlalchemy.engine import reflection
 import mellon
 from .interfaces import IDBReporter
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
-
 
 @component.adapter(mellon.ISecretDiscoveredEvent)
 def db_reporter_for_secret(event):
@@ -21,18 +20,25 @@ def db_reporter_for_secret(event):
                 u"Found secret in file snippet.  Secret information: [{}]. Secret unique identifier [{}]. Snippet information: [{}].  File information: [{}].  Authorization context information [{}]"\
                 .format(secret, secret.get_id(), snippet.__name__, mfile, mellon.IAuthorizationContext(snippet)))
 
-@interface.implementer(IDBReporter)
-class DBReporter(object):
+
+@component.adapter(mellon.IMellonApplication, mellon.IMellonApplicationConfiguredEvent)
+def initialize_db(app, event):
+    db_init = DbInitializer()
+    DBReporter.initializer = db_init
+    DBReporter.tables = db_init.tables
+    DBReporter.utc_time = db_init.utc_time
+
+class DbInitializer(object):
 
     def __init__(self):
         m = mellon.mellon.get_registered_app()
-        _dsn = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','dsn')
-        _kwargs = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','kwargs', default={})
+        _dsn = m['vgetter'].get_value('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','dsn')
+        _kwargs = m['vgetter'].get_value('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','kwargs', default={})
         if m['app'].debug:
             _kwargs['echo'] = True
         self.engine = sqlalchemy.create_engine(_dsn, **_kwargs)
-        self.table_name = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','table_name', default='secrets')
-        self.utc_time = m['vgetter'].get('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','utc_time', default=False)
+        self.table_name = m['vgetter'].get_value('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','table_name', default='secrets')
+        self.utc_time = m['vgetter'].get_value('SQLAlchemyLoggerReporter','SQLAlchemyReporter','SQLAlchemyEngine','utc_time', default=False)
 
         self.metadata = sqlalchemy.MetaData()
         self.tables = {
@@ -60,11 +66,18 @@ class DBReporter(object):
     def initialized(self):
         insp = reflection.Inspector.from_engine(self.engine)
         return self.table_name in insp.get_table_names()
+
+@interface.implementer(IDBReporter)
+class DBReporter(object):
+    
+    initializer = None #initialized by .subscribers.initialize_db
+    tables = None #initialized by .subscribers.initialize_db
+    utc_time = None #initialized by .subscribers.initialize_db
     
     def report(self, secret):
         snippet = secret.__parent__
         mfile = snippet.__parent__
-        connection = self.engine.connect()
+        connection = self.initializer.engine.connect()
         ins = self.tables['secrets'].insert().values(
                     entry_datetime=datetime.now() if not self.utc_time else datetime.utcnow(),
                     secret_id = secret.get_id(),

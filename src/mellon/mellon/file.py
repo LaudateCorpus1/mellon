@@ -2,7 +2,6 @@ import collections
 from zope import component
 from zope import interface
 from zope.component.factory import Factory
-from sparc.configuration import container
 from .interfaces import IByteMellonFile, IUnicodeMellonFile
 
 DEFAULT_snippet_lines_increment = 1
@@ -20,8 +19,7 @@ class MellonByteFileFromFileStreamAndConfig(object):
         self.snippet_interfaces = snippet_interfaces
         self._parent_override = parent_override or self
         
-        snippet_config = container.\
-                            IPyContainerConfigValue(config).get('MellonSnippet')
+        snippet_config = config.mapping().get_value('MellonSnippet')
         
         self.read_size = snippet_config.get(\
                             'bytes_read_size', DEFAULT_read_size)
@@ -87,8 +85,7 @@ class MellonUnicodeFileFromFileStreamAndConfig(object):
         self.snippet_interfaces = snippet_interfaces
         self._parent_override = parent_override or self
         
-        snippet_config = container.\
-                            IPyContainerConfigValue(config).get('MellonSnippet')
+        snippet_config = config.mapping().get_value('MellonSnippet')
 
         self.snippet_lines_increment = snippet_config.get(\
                         'lines_increment', DEFAULT_snippet_lines_increment)

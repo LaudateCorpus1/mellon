@@ -1,0 +1,9 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="mellon">
+    
+    <include package="mellon" file="ftesting.zcml" />
+    <include package="mellon_plugin.factory.web_crawler" />
+
+</configure>

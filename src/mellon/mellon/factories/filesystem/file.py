@@ -3,7 +3,6 @@ import os.path
 from zope import component
 from zope import interface
 from zope.component.factory import Factory
-from sparc.configuration import container
 import mellon
 
 @interface.implementer(mellon.IByteMellonFile)
@@ -52,7 +51,7 @@ class MellonFileProviderForRecursiveDirectoryConfig(object):
         """Init
         
         Args:
-            config: sparc.configuration.container.ISparcAppPyContainerConfiguration
+            config: sparc.config.IConfigContainer
                     provider with 
                     mellon.factories.filesystem[configure.yaml:FileSystemDir]
                     and mellon[configure.yaml:MellonSnippet] entries.
@@ -60,8 +59,7 @@ class MellonFileProviderForRecursiveDirectoryConfig(object):
         self.config = config
     
     def __iter__(self):
-        base_path = container.IPyContainerConfigValue(self.config).\
-                                            get('FileSystemDir')['directory']
+        base_path = self.config.mapping().get_value('FileSystemDir')['directory']
         for d, dirs, files in os.walk(base_path):
             for f in files:
                 path = os.path.join(d, f)

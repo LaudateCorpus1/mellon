@@ -1,14 +1,11 @@
 from zope import component
-from sparc import configuration
-from sparc.configuration import container
 import mellon
 
 from sparc.logging import logging
 logger = logging.getLogger(__name__)
 
-@component.adapter(mellon.IMellonApplication, configuration.ISparcApplicationConfiguredEvent)
+@component.adapter(mellon.IMellonApplication, mellon.IMellonApplicationConfiguredEvent)
 def initialize_spiders(app, event):
-    """Register configured reaper storage facility"""
-    if container.IPyContainerConfigValue(app.get_config()).\
-                                        query('ScrapySimpleTextWebsiteCrawler'):
+    """Register configured storage facility"""
+    if app.get_config().mapping().query_value('ScrapySimpleTextWebsiteCrawler'):
         import mellon_plugin.factory.web_crawler.web_crawler.spiders.config_spiders

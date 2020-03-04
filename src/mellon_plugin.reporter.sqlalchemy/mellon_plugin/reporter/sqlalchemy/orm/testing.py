@@ -196,13 +196,10 @@ class MellonOrmRuntimeReporterLayer(MellonApplicationRuntimeLayer):
                  'bytes_increment': 7,
                  'bytes_coverage': 8
                 },
-             'ZCMLConfiguration':
-                [
-                    {'package':'mellon.sniffers.test'},
-                    {'package':'mellon.factories.test'},
-                    {'package':'mellon.reporters.memory'},
-                    {'package':'mellon_plugin.reporter.sqlalchemy.orm'}
-                 ]
+             'ZopeComponentConfiguration':
+                {
+                 'zcml': [ {'package': 'mellon_plugin.reporter.sqlalchemy.orm', 'file': 'ftesting.zcml'}]
+                }
             }
         if config:
             _config.update(config)

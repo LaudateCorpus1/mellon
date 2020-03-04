@@ -28,7 +28,6 @@ except ImportError:
     from urllib.parse import quote_plus
     from queue import Queue, Empty
 
-from sparc.configuration import container
 from sparc.utils import requests
 
 from sparc.logging import logging
@@ -44,8 +43,8 @@ class MellonUnicodeFileFromURLItemAndConfig(
     def __init__(self, url, response, config):
         self.url = url 
         self.config = config
-        self.strip_html = container.IPyContainerConfigValue(
-                    self.config['ConfluenceSpaceContent']).get(
+        self.strip_html = \
+                    self.config.mapping()['ConfluenceSpaceContent'].get(
                                                         'StripHtmlTags', False)
         ifaces = [IConfluenceUnicodeSnippet]
         if self.strip_html:
@@ -89,8 +88,8 @@ class MellonUnicodeFileFromConfluenceAttachment(
         r.raise_for_status()
         MellonUnicodeFileFromConfluenceAttachment.replace_line_iterator(r)
         self.url = url
-        self.strip_html = container.IPyContainerConfigValue(
-                    self.config['ConfluenceSpaceContent']).get(
+        self.strip_html = \
+                    self.config.mapping()['ConfluenceSpaceContent'].get(
                                                         'StripHtmlTags', False)
         ifaces = [IConfluenceUnicodeSnippet]
         if self.strip_html:
@@ -164,37 +163,32 @@ class TSMellonFileProviderFromConfluenceConfig(object):
         self.job_id = 0 #assign and track unique job ids
         
         # API properties
-        max_workers= int(container.IPyContainerConfigValue\
-                            (config['ConfluenceSpaceContent']).
+        max_workers = int(config.mapping()['ConfluenceSpaceContent'].
                                 get('RequestWorkers', DEFAULT_REQUEST_WORKERS))
         self.api_executer = ThreadPoolExecutor(max_workers = max_workers)
         self.api_session = FuturesSession(self.api_executer)
         
         self.api_base = \
             self.config['ConfluenceSpaceContent']['ConfluenceConnection']['url']
-        self.api_limit = '&limit=' + str(container.IPyContainerConfigValue\
-                                (config['ConfluenceSpaceContent']).\
-                                    get('ContentPaginationLimit', 
-                                        DEFAULT_PAGINATION_LIMIT))
+        self.api_limit = '&limit=' + \
+                                config.mapping()['ConfluenceSpaceContent'].\
+                                    get('ContentPaginationLimit', DEFAULT_PAGINATION_LIMIT)
         self.api_expand = '&expand=history,version,body.storage'
         
         # Content directives
         self.prune = datrie.Trie(string.printable) #make sure to not request same data twice from Confluence API
         self.content_get_history = \
-            container.IPyContainerConfigValue(
-                config['ConfluenceSpaceContent']).get('SearchHistory', False)
+            config.mapping()['ConfluenceSpaceContent'].get('SearchHistory', False)
         
         logger.debug(u"Threaded Confluence Mellon file provider initialized with {} worker threads".format(max_workers))
     
     def authorization_context(self):
         sec_context = component.createObject(u'mellon.authorization_context', )
         sec_context.identity = \
-                container.IPyContainerConfigValue(
-                    self.config['ConfluenceSpaceContent']['ConfluenceConnection']).get(
+                self.config.mapping()['ConfluenceSpaceContent']['ConfluenceConnection'].get(
                         'username', '')
         sec_context.description = \
-                container.IPyContainerConfigValue(
-                    self.config['ConfluenceSpaceContent']['ConfluenceConnection']).get(
+                self.config.mapping()['ConfluenceSpaceContent']['ConfluenceConnection'].get(
                         'context', '')
         return sec_context
     

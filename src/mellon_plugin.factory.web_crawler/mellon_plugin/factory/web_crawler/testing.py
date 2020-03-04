@@ -48,8 +48,10 @@ class MellonWebCrawlerRuntimeLayer(MellonApplicationRuntimeLayer):
                            {
                             'urls': ['http://localhost:{}/index.html'.format(self.http_port)]
                            },
-                        'ZCMLConfiguration':
-                            [{'package':'mellon_plugin.factory.web_crawler'}]
+                        'ZopeComponentConfiguration':
+                            {
+                             'zcml': [ {'package': 'mellon_plugin.factory.web_crawler', 'file': 'ftesting.zcml'}]
+                            }
                       }
         self.cwd = os.getcwd()
         os.chdir(os.path.join(os.path.dirname(tests.__file__), 'httpd_root'))
@@ -91,7 +93,7 @@ class MellonWebCrawlerExecutedRuntimeLayer(MellonWebCrawlerRuntimeLayer):
 
     def setUp(self):
         MellonWebCrawlerRuntimeLayer.setUp(self)
-        app = create_and_register_app(self.config, self.verbose, self.debug)
+        #app = create_and_register_app(self.config, self.verbose, self.debug)
         run_spiders() #will fill up the web_crawler item queue
         try:
             while True:
@@ -100,7 +102,7 @@ class MellonWebCrawlerExecutedRuntimeLayer(MellonWebCrawlerRuntimeLayer):
         except Empty:
             self._repopulate_pipeline_queue()
         
-        mfp = mellonFileProviderForAllRegisteredScrapySpidersFactory(app.get_config())
+        mfp = mellonFileProviderForAllRegisteredScrapySpidersFactory(self.app.get_config())
         MellonWebCrawlerExecutedRuntimeLayer.mellon_files = [f for f in mfp]
         MellonWebCrawlerExecutedRuntimeLayer.class_is_setup = True
     

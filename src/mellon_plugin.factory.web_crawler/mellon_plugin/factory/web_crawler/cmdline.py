@@ -3,7 +3,7 @@ Allow use of native Scrapy CLI app with Mellon config based scrapers.
 """
 import mellon.mellon
 import mellon_plugin.factory.web_crawler
-from sparc.configuration.container import application
+from mellon.mellon import getScriptArgumentParser
 import os
 import scrapy.cmdline
 import sys
@@ -37,7 +37,7 @@ def main():
         # We'll create and register a Mellon app.  this will allow
         # Scrapy components to find the app config via registry look-ups.
         sys.argv = args_mellon
-        args = application.getScriptArgumentParser(mellon.mellon.DESCRIPTION).parse_args()
+        args = getScriptArgumentParser(mellon.mellon.DESCRIPTION).parse_args()
         mellon.mellon.create_and_register_app(args.config_file, args.verbose, args.debug)
         # run scrapy (from scrapy project dir)
         sys.argv = args_scrapy

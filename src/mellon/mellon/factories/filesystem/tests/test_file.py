@@ -1,15 +1,10 @@
-from __future__ import print_function
-import os
 import os.path
-import shutil
 import unittest
 import zope.testrunner
 from zope import component
 from sparc.testing.fixture import test_suite_mixin
 from ..testing import *
 
-import tempfile
-from sparc.configuration import yaml
 
 
 class MellonFactoryFilesystemFileTestCase(unittest.TestCase):

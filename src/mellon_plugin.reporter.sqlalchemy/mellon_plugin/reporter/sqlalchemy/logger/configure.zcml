@@ -3,6 +3,7 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="mellon_plugin.reporter.sqlalchemy.logger">
 
+    <subscriber handler=".db.initialize_db" />
     <subscriber handler=".db.db_reporter_for_secret" />
     
     <utility

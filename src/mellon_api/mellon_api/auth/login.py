@@ -20,7 +20,7 @@ def login(**kwargs):
     m = get_registered_app()
     
     app = component.getUtility(IFlaskApplication)
-    lifespan = m['vgetter'].get('MellonApiAuth','token','lifespan', default=86400)
+    lifespan = m['vgetter'].get_value('MellonApiAuth','token','lifespan', default=86400)
     
     s = Serializer(app.config['SECRET_KEY'], expires_in=lifespan)
     token = s.dumps({'username': r.form['username']})

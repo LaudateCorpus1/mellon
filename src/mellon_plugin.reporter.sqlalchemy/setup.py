@@ -39,7 +39,7 @@ setup(name='mellon_plugin.reporter.sqlalchemy',
           'mellon',
           'zope.component',
           'zope.interface',
-          'sparc.configuration',
+          'sparc.config',
           'sparc.logging'
       ],
       tests_require=[

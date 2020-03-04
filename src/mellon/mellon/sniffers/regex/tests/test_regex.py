@@ -33,10 +33,10 @@ class MellonSnifferRegExExecutedLayer(testing.MellonApplicationExecutedLayer):
                      'unicode':os.path.join(base_path,'test_regex_patterns_unicode.cfg')
                     }
                 },
-             'ZCMLConfiguration':
-                [{'package':'mellon.sniffers.regex'},
-                 {'package':'mellon.reporters.memory'},
-                 {'package':'mellon.factories.filesystem'}]
+             'ZopeComponentConfiguration':
+                            {
+                             'zcml': [ {'package': 'mellon.sniffers.regex.tests', 'file': 'ftesting.zcml'}]
+                            }
             }
         super(MellonSnifferRegExExecutedLayer, self).setUp()
         

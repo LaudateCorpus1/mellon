@@ -38,7 +38,6 @@ setup(name='mellon_plugin.sniffer.entropy',
           'mellon',
           'zope.component',
           'zope.interface',
-          'sparc.configuration',
           'sparc.logging',
           'entropy'
       ],

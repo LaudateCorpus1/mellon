@@ -12,8 +12,8 @@ from . import IAPIRequestPage, IAPIPagination
 class APIRequestPageFromFlaskRequestAndCount(object):
     def __init__(self, request, count): 
         m = get_registered_app()
-        max_limit = m['vgetter'].get('ResourcePagination', 'max_limit', default=50)
-        default_limit = m['vgetter'].get('ResourcePagination', 'max_limit', default=20)
+        max_limit = m['vgetter'].get_value('ResourcePagination', 'max_limit', default=50)
+        default_limit = m['vgetter'].get_value('ResourcePagination', 'max_limit', default=20)
                                         
         self.offset = int(request.args.get('offset', 0))
         if self.offset < 0 or self.offset >= count:
