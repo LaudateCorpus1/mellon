@@ -1,6 +1,7 @@
 import argparse
 import sys
 from zope import component
+import zope.component.event #this is needed to insure event.notify calls will issue against registered handlers
 from zope.dottedname.resolve import resolve
 from zope import event
 from zope import interface
@@ -102,6 +103,16 @@ class Mellon(object):
             logger.setLevel('INFO')
         if debug:
             logger.setLevel('DEBUG')
+    
+    def print_components(self):
+        sm = component.getSiteManager() #contextual sm lookup
+        from pprint import pprint
+        self.logger.debug("Printing registered components:")
+        pprint( {'Adapters': list(sm.registeredAdapters()),
+                'Utilities': list(sm.registeredUtilities()),
+                'SubscriptionAdapters': list(sm.registeredSubscriptionAdapters()),
+                'Handlers': list(sm.registeredHandlers())
+                })
 
     def go(self):
         self.logger.info(u"searching for MellonFileProviderFactory entries in config file")
@@ -177,8 +188,10 @@ def get_yaml_parameters(yaml_parameters):
 def create_app(config, verbose=False, debug=False):
     if not IConfigContainer.providedBy(config):
         config = SparcConfigContainer(config)
-    handle_sparc_component_config_container(config) #registers components
     app = Mellon(config=config, verbose=verbose,debug=debug)
+    handle_sparc_component_config_container(config) #registers components
+    if debug:
+        app.print_components()
     app.verbose = verbose
     app.debug = debug
     return app
