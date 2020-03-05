@@ -26,9 +26,9 @@ class MellonFileProviderFromStashConfig(object):
     def authorization_context(self):
         sec_context = component.createObject(u'mellon.authorization_context', )
         sec_context.identity = self.config.mapping()['StashProjectRepos']['StashConnection'].get(
-                        'username', default='')
+                        'username', '')
         sec_context.description = self.config.mapping()['StashProjectRepos']['StashConnection'].get(
-                        'context', default='')
+                        'context', '')
         return sec_context
     
     def __iter__(self):
@@ -40,7 +40,7 @@ class MellonFileProviderFromStashConfig(object):
         git-based IMellonFileProvider implementation in mellon.git
         """
         stash_repo_iter = component.createObject(\
-                        u'sparc.git.repos.stash.repos_iterator', self.config)
+                        u'sparc.git.repos.stash.repos_iterator', self.config.mapping())
         for r in stash_repo_iter:
             origin = r.remotes['origin']
             assert origin.exists()
@@ -59,8 +59,8 @@ class MellonFileProviderFromStashConfig(object):
         # namespace.  We'll create a new config that contains our desired 
         # values.
         config = {}
-        config['GitReposBaseDir'] = self.config['StashProjectRepos']['GitReposBaseDir']
-        config['MellonSnippet'] = self.config['MellonSnippet']
+        config['GitReposBaseDir'] = self.config.mapping()['StashProjectRepos']['GitReposBaseDir']
+        config['MellonSnippet'] = self.config.mapping()['MellonSnippet']
         
         git_file_provider = component.createObject(\
                     u'mellon_plugin.factory.git.file_provider_from_git_repos_base_directory',
